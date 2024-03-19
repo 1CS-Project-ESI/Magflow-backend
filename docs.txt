@@ -1,0 +1,4 @@
+The Node.JS version used in this project is v20.11.1
+
+This project utilizes ECMAScript Modules (ESM).
+

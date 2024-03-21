@@ -7,7 +7,7 @@ dotenv.config();
 
 const port= process.env.PORT|| 5000;
 
-
+// app.use('/api/users', import './routes/userRoutes');
 
 
 // Execute the SQL query

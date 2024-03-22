@@ -1,6 +1,7 @@
 import express from "express";
 import { loginUser, createUser } from "../controllers/usersController.js";
 import { validateToken } from "../middlewares/validateTokenHandler.js";
+// import { isAdmin } from "../middlewares/adminChecker.js";
 
 const router = express.Router();
 

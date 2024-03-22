@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken"
 import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
+import {UsersRoles,Role} from "../models/rolesModel.js";
 import bcrypt from "bcrypt"
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -58,7 +59,7 @@ const generateMatricule = () => {
     // Generate a random number and convert it to a string
     const randomNumber = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     // Concatenate a prefix to the random number (you can adjust the prefix as needed)
-    return 'ADMIN' + randomNumber;
+    return 'MAT' + randomNumber;
 };
 const createUser = asyncHandler(async (req, res) => {
     try {
@@ -67,6 +68,11 @@ const createUser = asyncHandler(async (req, res) => {
         // Validate required fields
         if (!firstname || !lastname || !email || !password || !phone || !isactive || !role) {
             return res.status(400).json({ message: "All fields are mandatory" });
+        };
+
+        const existingRole = await Role.findOne({ where: { name: role } });
+        if (!existingRole) {
+            return res.status(400).json({ message: "Invalid role" });
         }
 
         // Check if email already exists
@@ -116,6 +122,13 @@ const createUser = asyncHandler(async (req, res) => {
             matricule: generateMatricule(), 
             user_id: newuser.id,
         });
+        
+        const userRole = await UsersRoles.create({
+            user_id: newuser.id,
+            role_id: existingRole.id
+        });
+        
+        
 
         return res.status(201).json({ message: "User created successfully", user: newuser });
     } catch (error) {

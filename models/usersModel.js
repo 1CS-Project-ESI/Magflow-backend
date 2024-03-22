@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes } from 'sequelize';
 
+
 const sequelize = new Sequelize({
   database: 'magflow',
   username: 'magflow_owner',
@@ -42,7 +43,10 @@ const User = sequelize.define('users', {
   phone: {
     type: DataTypes.STRING(20),
   },
-  // Add any other fields as needed
+  isactive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue:true
+  }
 },{
   timestamps : false,
 });
@@ -50,58 +54,125 @@ const User = sequelize.define('users', {
 
 
 const Admin = sequelize.define('admin', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+}, {
+  tableName:'admin',
+  timestamps: false,
 });
 
-Admin.belongsTo(User);
+
 
 const Director = sequelize.define('director', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+}, {
+  tableName:'director',
+  timestamps: false,
 });
 
-Director.belongsTo(User);
+
 
 const Magasinier = sequelize.define('magasinier', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+}, {
+  tableName:'magasinier',
+  timestamps: false,
 });
 
-Magasinier.belongsTo(User);
+
 
 const Consumer = sequelize.define('consumer', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+}, {
+  tableName:'consumer',
+  timestamps: false,
 });
-
-Consumer.belongsTo(User);
 
 const AgentServiceAchat = sequelize.define('agentserviceachat', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+}, {
+  tableName:'agentserviceachat',
+  timestamps: false,
 });
-
-AgentServiceAchat.belongsTo(User);
 
 
 const StructureResponsable = sequelize.define('structureresponsable', {
+  user_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+  },
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+}, {
+  tableName:'structureresponsable',
+  timestamps: false,
 });
 
-StructureResponsable.belongsTo(User);
+// sequelize.sync({ alter: true })
+//   .then(() => {
+//     console.log('Database synchronized');
+//   })
+//   .catch((error) => {
+//     console.error('Error synchronizing database:', error)});
 
-export default {User,Admin,Magasinier,Director,Consumer,AgentServiceAchat,StructureResponsable,sequelize};
+export  {User,Admin,Magasinier,Director,Consumer,AgentServiceAchat,StructureResponsable,sequelize};

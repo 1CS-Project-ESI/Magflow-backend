@@ -1,7 +1,10 @@
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken"
 import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
+import sendEmail from "../middlewares/sendEmail.js";
 import bcrypt from "bcrypt"
+import { v4 as uuidv4 } from 'uuid'; // lib to generate the reset token 
+import { Op } from "sequelize";
 
 const loginUser = asyncHandler(async (req, res) => {
     try {
@@ -123,6 +126,66 @@ const createUser = asyncHandler(async (req, res) => {
     }
 });
 
-  export { loginUser , createUser};
+
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ message: 'Email not found.' });
+        }
+
+        
+        const resettoken = uuidv4();
+
+        // update
+        await user.update({ resettoken});
+        // console.log('Updated user:', user.toJSON());
+
+        sendEmail(email, resettoken);
+
+        return res.status(200).json({ message: 'Password reset email sent.' });
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+    });
+    
+
+
+    const resetPassword = asyncHandler(async (req, res) => {
+        const { resettoken } = req.params;
+        // console.log('Reset token:', resettoken);
+        const { newPassword, confirmPassword } = req.body;
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match.' });
+        }
+
+        try {
+            const user = await User.findOne({
+                where: {
+                    resettoken: {
+                        [Op.eq]: resettoken
+                    }
+                }
+            });
+            // console.log('Found user:', user);
+            if (!user) {
+                return res.status(404).json({ message: 'Invalid or expired reset token.' });
+            }
+            
+
+            await user.update({ password: newPassword, resettoken: null, resettokenexpiration: null });
+
+            return res.status(200).json({ message: 'Password reset successfully.' });
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            res.status(500).json({ message: 'Internal server error.' });
+        }
+    });
+        
+  export { loginUser , createUser, forgotPassword, resetPassword};
 
  

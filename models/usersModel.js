@@ -20,39 +20,88 @@ const User = sequelize.define('users', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
   },
   firstname: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: DataTypes.STRING(255),
+    allowNull: false,
   },
   lastname: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: DataTypes.STRING(255),
+    allowNull: false,
   },
   email: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
     allowNull: false,
-    unique: true
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
   },
   phone: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: DataTypes.STRING(20),
   },
-  isactive: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true 
-  }
-}, {
-    // Disable timestamps
-    timestamps: false
-  });
+  // Add any other fields as needed
+},{
+  timestamps : false,
+});
 
-// // Create the table if it doesn't exist
-// User.sync({ force: false }).then(() => {
-//   console.log('User table created');
-// }).catch(error => {
-//   console.error('Error creating User table:', error);
-// });
 
-export default User;
+
+const Admin = sequelize.define('admin', {
+  matricule: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+});
+
+Admin.belongsTo(User);
+
+const Director = sequelize.define('director', {
+  matricule: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+});
+
+Director.belongsTo(User);
+
+const Magasinier = sequelize.define('magasinier', {
+  matricule: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+});
+
+Magasinier.belongsTo(User);
+
+const Consumer = sequelize.define('consumer', {
+  matricule: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+});
+
+Consumer.belongsTo(User);
+
+const AgentServiceAchat = sequelize.define('agentserviceachat', {
+  matricule: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+});
+
+AgentServiceAchat.belongsTo(User);
+
+
+const StructureResponsable = sequelize.define('structureresponsable', {
+  matricule: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+});
+
+StructureResponsable.belongsTo(User);
+
+export default {User,Admin,Magasinier,Director,Consumer,AgentServiceAchat,StructureResponsable,sequelize};

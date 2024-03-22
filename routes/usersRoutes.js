@@ -5,7 +5,7 @@ import { validateToken } from "../middlewares/validateTokenHandler.js";
 const router = express.Router();
 
 // Define routes (endpoints)
-router.post("/login", loginUser);
+
 router.post("/createuser", validateToken, createUser);
 
 export default router;

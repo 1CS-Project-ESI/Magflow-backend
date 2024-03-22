@@ -1,16 +1,19 @@
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken"
-import User from "../models/usersModel.js";
+import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
 import bcrypt from "bcrypt"
 
 const loginUser = asyncHandler(async (req, res) => {
     try {
-        // if (!email || !password) {
-        //     return res.status(400).json({ message: "Email and password are required" });
-        // }
+
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
         const user = await User.findOne({
             where: {
-                email: req.body.email,
+                email   
             },
         });
 
@@ -18,9 +21,9 @@ const loginUser = asyncHandler(async (req, res) => {
             return res.status(404).send({ message: "User Not found." });
         }
 
-        const passwordIsValid = bcrypt.compare(
+        const passwordIsValid = await bcrypt.compare(
             req.body.password,
-            user.password)
+            user.password);
         
         
         if (!passwordIsValid) {
@@ -51,24 +54,32 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
-
+const generateMatricule = () => {
+    // Generate a random number and convert it to a string
+    const randomNumber = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    // Concatenate a prefix to the random number (you can adjust the prefix as needed)
+    return 'ADMIN' + randomNumber;
+};
 const createUser = asyncHandler(async (req, res) => {
     try {
+        const { firstname, lastname, email, password, phone, isactive, role } = req.body;
 
-        const { firstname, lastname, email, password, phone, isactive } = req.body;
-        // if (!firstname || !lastname || !email || !password || !phone || !isactive) {
-        //     return res.status(400).json({ message: "All fields are mandatory" });
-        // }
+        // Validate required fields
+        if (!firstname || !lastname || !email || !password || !phone || !isactive || !role) {
+            return res.status(400).json({ message: "All fields are mandatory" });
+        }
 
-
+        // Check if email already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ message: "Email already in use" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10); // Adjust the saltRounds as needed
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await User.create({
+        // Create the user
+        const newuser = await User.create({
             firstname,
             lastname,
             email,
@@ -77,7 +88,36 @@ const createUser = asyncHandler(async (req, res) => {
             isactive,
         });
 
-        return res.status(201).json({ message: "User created successfully", user: newUser });
+        let roleModel;
+        switch (role) {
+            case 'admin':
+                roleModel = Admin;
+                break;
+            case 'director':
+                roleModel = Director;
+                break;  
+            case 'consumer':
+                roleModel = Consumer;
+                break;
+            case 'magasinier':
+                roleModel = Magasinier;
+                break;
+            case 'agentserviceachat':
+                roleModel = AgentServiceAchat;
+                break;
+            case 'structureresponsable':
+                roleModel = StructureResponsable;
+                break;
+            default:
+                return res.status(400).json({ message: "Invalid role" });
+        }
+
+        await roleModel.create({
+            matricule: generateMatricule(), 
+            user_id: newuser.id,
+        });
+
+        return res.status(201).json({ message: "User created successfully", user: newuser });
     } catch (error) {
         return res.status(500).json({ message: "Error creating user", error: error.message });
     }

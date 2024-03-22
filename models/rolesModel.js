@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import {sequelize,User} from './usersModel.js'; // Import your Sequelize instance
+import {sequelize,User} from './usersModel.js'; 
 
 const Role = sequelize.define('roles', {
   id: {
@@ -12,17 +12,43 @@ const Role = sequelize.define('roles', {
     allowNull: false,
     unique: true,
   },
+},{
+    timestamps :false
 });
 
-const UserRoles = sequelize.define('usersroles', {
+const UsersRoles = sequelize.define('usersroles', {
     id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-  });
+    user_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'users',
+            key: 'id'
+        },
+        allowNull: false
+    },
+    role_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'roles',
+            key: 'id'
+        },
+        allowNull: false
+    }
+}, {
+    tableName: 'usersroles',
+    timestamps: false,
+    uniqueKeys: {
+        usersroles_unique: {
+            fields: ['user_id', 'role_id']
+        }
+    }
+});
   
-  User.belongsToMany(Role, { through: UserRoles });
-  Role.belongsToMany(User, { through: UserRoles });
+//   User.belongsToMany(Role, { through: UsersRoles });
+//   Role.belongsToMany(User, { through: UsersRoles });
 
-export default {Role,UserRoles};
+export  {Role,UsersRoles};

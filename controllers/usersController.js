@@ -199,7 +199,12 @@ const forgotPassword = asyncHandler(async (req, res) => {
             res.status(500).json({ message: 'Internal server error.' });
         }
     });
+
+    const currentUser = asyncHandler(async (req,res)=>{
+        console.log(req.user);
+        res.json(req.user);
+    });
         
-  export { loginUser , createUser, forgotPassword, resetPassword};
+  export { loginUser , createUser, forgotPassword, resetPassword , currentUser};
 
  

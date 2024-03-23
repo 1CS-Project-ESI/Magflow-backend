@@ -1,5 +1,6 @@
 import express from "express";
-import { loginUser, createUser, deleteUserById, getAllUsers, updateUserById} from "../controllers/usersController.js";
+import { loginUser, createUser} from "../controllers/usersController.js";
+import {deleteUserById, getAllUsers, updateUserById} from "../controllers/userRudController.js"
 
 import modifyParams from "../controllers/paramController.js";
 import { validateToken } from "../middlewares/validateTokenHandler.js";
@@ -12,7 +13,7 @@ const router = express.Router();
 router.post("/createuser", validateToken, createUser);
 router.delete("/:id",validateToken ,deleteUserById);
 router.get("/AllUsers", validateToken,getAllUsers);
- router.put("/modifyParams",validateToken,modifyParams);
+router.put("/modifyParams",validateToken,modifyParams);
 router.put("/:id",validateToken,updateUserById);
 
 

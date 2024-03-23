@@ -14,7 +14,6 @@ const sendEmail = async (email, resettoken) => {
     from: 'lh.bouchelarem@esi-sba.dz',
     to: email,
     subject: 'Password Reset',
-    //html: `<p>Click <a href="http://localhost:4000/api/auth/reset-password/${resettoken}">here</a> to reset your password.</p>`,
     html: `<!DOCTYPE html>
     <html>
     <head>

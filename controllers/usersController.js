@@ -6,6 +6,7 @@ import sendEmail from "../middlewares/sendEmail.js";
 import bcrypt from "bcrypt"
 import { v4 as uuidv4 } from 'uuid'; // lib to generate the reset token 
 import { Op } from "sequelize";
+import session from 'express-session';
 
 const loginUser = asyncHandler(async (req, res) => {
     try {
@@ -23,7 +24,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
         if (!user) {
             return res.status(404).send({ message: "User Not found." });
-        }
+        };
+
+        if (!user.isactive) {
+            return res.status(403).send({ message: "Account is deactivated. Please contact support." });
+        };
 
         const passwordIsValid = await bcrypt.compare(
             req.body.password,
@@ -204,7 +209,34 @@ const forgotPassword = asyncHandler(async (req, res) => {
         console.log(req.user);
         res.json(req.user);
     });
+
+
+    
+    const deactivateAccount =asyncHandler( async (req, res) => {
+        try {
+            const { email } = req.body;
+            const user = await User.findOne({ where: { email } });
+            
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            user.isactive = false;
+            await user.save();
+            
+            
+            // Invalidate the user's session
+            console.log("session",req.session);
+            if (req.session) {
+                req.session.destroy(); // Destroy the session
+            }
+            console.log("session",req.session);
+            // Redirect the user to a login page or a message indicating their account status
+            res.redirect('http://localhost:4000/api/auth/login')
+        } catch (error) {
+            return res.status(500).json({ message: "Error deactivating account", error: error.message });
+        }
+    });
         
-  export { loginUser , createUser, forgotPassword, resetPassword , currentUser};
+  export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount};
 
  

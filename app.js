@@ -4,6 +4,7 @@ import { pool } from "./config/dbConnection.js";
 import usersRoutes from "./routes/usersRoutes.js";
 import authRoutes from "./routes/authRoute.js"
 import bodyParser from "body-parser";
+import session from 'express-session';
 
 
 
@@ -14,6 +15,12 @@ app.use(bodyParser.json());
 
 // Parse URL-encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(session({
+  secret: 'magflow123',
+  resave: false,
+  saveUninitialized: true
+}));
 
 const port= process.env.PORT|| 5000;
 

@@ -1,8 +1,7 @@
 import express from "express";
-import { createUser, currentUser , deactivateAccount , activateAccount, deleteUserById, getAllUsers, updateUserById} from "../controllers/usersController.js";
-
+import {deleteUserById, getAllUsers, updateUserById} from "../controllers/userRudController.js"
+import { createUser, currentUser , deactivateAccount , activateAccount} from "../controllers/usersController.js";
 import modifyParams from "../controllers/paramController.js";
-
 import { validateToken } from "../middlewares/validateTokenHandler.js";
 import { isAdmin } from "../middlewares/adminChecker.js";
 

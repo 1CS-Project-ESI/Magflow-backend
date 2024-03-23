@@ -45,7 +45,7 @@ const sendEmail = async (email, resettoken) => {
               <p>This link is valid for a single use only. If you did not request a password reset, please ignore this email.</p>
               <p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>
               <p>Thank you,<br>
-              The Support Team</p>
+              The MagFlow Team</p>
           </div>
       </body>
       </html>
@@ -115,4 +115,57 @@ const sendAccountCreationEmail = async (email, firstname, lastname, password) =>
   }
 };
 
-export {sendEmail, sendAccountCreationEmail};
+const sendAccountActivationEmail = async (email) => {
+  const mailOptions = {
+    from: 'lh.bouchelarem@esi-sba.dz',
+    to: email,
+    subject: 'Account Activated on MagFlow',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Account Activated on MagFlow</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>Account Activated on MagFlow</h2>
+          <p>Dear user,</p>
+          <p>Your account has been activated on MagFlow. You can now login.</p>
+          <p>Please click the following link to login:</p>
+          <p><a href="http://localhost:4000/api/auth/login">Log in</a></p>
+          <p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>
+          <p>Thank you,<br>
+          The MagFlow Team</p>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Activation email sent.');
+  } catch (error) {
+    console.error('Error sending activation email:', error);
+  }
+};
+
+
+export {sendEmail, sendAccountCreationEmail,sendAccountActivationEmail};

@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken"
 import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
 import {UsersRoles,Role} from "../models/rolesModel.js";
-import {sendEmail, sendAccountCreationEmail} from "../middlewares/sendEmail.js";
+import {sendEmail, sendAccountCreationEmail, sendAccountActivationEmail} from "../middlewares/sendEmail.js";
 import bcrypt from "bcrypt"
 import { v4 as uuidv4 } from 'uuid'; // lib to generate the reset token 
 import { Op } from "sequelize";
@@ -259,6 +259,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
     
             user.isactive = true;
             await user.save();
+        
+            await sendAccountActivationEmail(email); 
+
             return res.status(200).json({ message: 'account activated succesfully' });
         
         } catch (error) {

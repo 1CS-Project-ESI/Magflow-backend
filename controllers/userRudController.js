@@ -1,10 +1,8 @@
-
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken"
 import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
 import {UsersRoles,Role} from "../models/rolesModel.js";
 import bcrypt from "bcrypt"
-// import generateMatricule from "./usersController.js"
 
 const generateMatricule = () => {
     // Generate a random number and convert it to a string
@@ -12,6 +10,7 @@ const generateMatricule = () => {
     // Concatenate a prefix to the random number (you can adjust the prefix as needed)
     return 'MAT' + randomNumber;
 }; 
+
 const deleteUserById = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
@@ -190,14 +189,6 @@ const updateUserById = asyncHandler(async (req, res) => {
       return res.status(500).json({ message: "Error updating user", error: error.message });
     }
   });
-
-
-
-
-
-
-
-
 
 export { deleteUserById  , getAllUsers, updateUserById };
 

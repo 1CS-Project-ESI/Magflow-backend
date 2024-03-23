@@ -223,20 +223,36 @@ const forgotPassword = asyncHandler(async (req, res) => {
             user.isactive = false;
             await user.save();
             
-            
-            // Invalidate the user's session
-            console.log("session",req.session);
+
             if (req.session) {
                 req.session.destroy(); // Destroy the session
             }
             console.log("session",req.session);
             // Redirect the user to a login page or a message indicating their account status
-            res.redirect('http://localhost:4000/api/auth/login')
+            res.redirect('ht    tp://localhost:4000/api/auth/login')
         } catch (error) {
             return res.status(500).json({ message: "Error deactivating account", error: error.message });
         }
     });
+
+    const activateAccount = asyncHandler(async (req, res) => {
+        try {
+            const { email } = req.body;
+            
+            const user = await User.findOne({ where: { email } });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            user.isactive = true;
+            await user.save();
+            return res.status(200).json({ message: 'account activated succesfully' });
         
-  export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount};
+        } catch (error) {
+            return res.status(500).json({ message: 'Error activating account', error: error.message });
+        }
+    });
+        
+  export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount , activateAccount};
 
  

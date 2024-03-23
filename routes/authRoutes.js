@@ -1,6 +1,7 @@
 import express from "express";
+import {validateToken} from "../middlewares/validateTokenHandler.js";
 import {resetPassword, forgotPassword, loginUser, logoutUser} from "../controllers/usersController.js";
-import {validateToken} from "../middlewares/validateTokenHandler.js"
+
 
 const router = express.Router();
 

@@ -62,4 +62,57 @@ const sendEmail = async (email, resettoken) => {
   }
 };
 
-export default sendEmail;
+const sendAccountCreationEmail = async (email, firstname, lastname, password) => {
+  const mailOptions = {
+    from: 'lh.bouchelarem@esi-sba.dz',
+    to: email,
+    subject: 'Account Creation Successful on MagFlow',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Account Creation Successful</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>Account Creation Successful on MagFlow</h2>
+          <p>Dear ${firstname} ${lastname},</p>
+          <p>Your account has been created successfully on MagFlow. Here are your credentials:</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Password:</strong> ${password}</p>
+          <p>Please keep your password safe and secure.</p>
+          <p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>
+          <p>Thank you,<br>
+          The MagFlow Team</p>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Creation email sent.');
+  } catch (error) {
+    console.error('Error sending creation email:', error);
+  }
+};
+
+export {sendEmail, sendAccountCreationEmail};

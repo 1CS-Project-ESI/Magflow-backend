@@ -2,11 +2,11 @@ import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken"
 import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
 import {UsersRoles,Role} from "../models/rolesModel.js";
-import sendEmail from "../middlewares/sendEmail.js";
+import {sendEmail, sendAccountCreationEmail} from "../middlewares/sendEmail.js";
 import bcrypt from "bcrypt"
 import { v4 as uuidv4 } from 'uuid'; // lib to generate the reset token 
 import { Op } from "sequelize";
-import session from 'express-session';
+import session from "express-session";
 
 const loginUser = asyncHandler(async (req, res) => {
 
@@ -56,27 +56,23 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
     try {
-      // Check if the Authorization header is present
       const authHeader = req.headers.authorization;
       if (!authHeader) {
         return res.status(401).json({ message: 'No token provided' });
       }
   
-      // Extract the token from the Authorization header
+      // Extracting the token from the Authorization header
       const token = authHeader.split(' ')[1];
   
-      // Verify the token
+
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-          // If the token is invalid or expired, return an error
           return res.status(401).json({ message: 'Invalid or expired token' });
         }
   
-        // If the token is valid, return a success message
         return res.status(200).json({ message: 'Logout successful' });
       });
     } catch (error) {
-      // Handle any unexpected errors
       return res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -154,7 +150,7 @@ const createUser = asyncHandler(async (req, res) => {
             role_id: existingRole.id
         });
         
-        
+        await sendAccountCreationEmail(email, firstname, lastname, password);        
 
         return res.status(201).json({ message: "User created successfully", user: newuser });
     } catch (error) {
@@ -246,8 +242,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
                 req.session.destroy(); // Destroy the session
             }
             console.log("session",req.session);
-            // Redirect the user to a login page or a message indicating their account status
-            res.redirect('ht    tp://localhost:4000/api/auth/login')
+            res.redirect('http://localhost:4000/api/auth/login')
         } catch (error) {
             return res.status(500).json({ message: "Error deactivating account", error: error.message });
         }

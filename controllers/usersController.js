@@ -189,8 +189,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
                 return res.status(404).json({ message: 'Invalid or expired reset token.' });
             }
             
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            await user.update({ password: newPassword, resettoken: null, resettokenexpiration: null });
+            await user.update({ password: hashedPassword, resettoken: null, resettokenexpiration: null });    
 
             return res.status(200).json({ message: 'Password reset successfully.' });
         } catch (error) {

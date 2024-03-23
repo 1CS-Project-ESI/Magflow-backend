@@ -9,8 +9,8 @@ import { Op } from "sequelize";
 import session from 'express-session';
 
 const loginUser = asyncHandler(async (req, res) => {
-    try {
 
+    try {
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -30,26 +30,17 @@ const loginUser = asyncHandler(async (req, res) => {
             return res.status(403).send({ message: "Account is deactivated. Please contact support." });
         };
 
-        const passwordIsValid = await bcrypt.compare(
-            req.body.password,
-            user.password);
-        
-        
+        const passwordIsValid = await bcrypt.compare(password, user.password);
+
         if (!passwordIsValid) {
             return res.status(401).send({
                 message: "Invalid Password!",
             });
         }
 
-        // Generate JWT token
         const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: 86400, // 24 hours
         });
-
-        // Initialize req.session if not already initialized
-        req.session = req.session || {};
-
-        req.session.token = token;
 
         return res.status(200).send({
             id: user.id,
@@ -62,6 +53,33 @@ const loginUser = asyncHandler(async (req, res) => {
         return res.status(500).send({ message: error.message });
     }
 });
+
+const logoutUser = asyncHandler(async (req, res) => {
+    try {
+      // Check if the Authorization header is present
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ message: 'No token provided' });
+      }
+  
+      // Extract the token from the Authorization header
+      const token = authHeader.split(' ')[1];
+  
+      // Verify the token
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          // If the token is invalid or expired, return an error
+          return res.status(401).json({ message: 'Invalid or expired token' });
+        }
+  
+        // If the token is valid, return a success message
+        return res.status(200).json({ message: 'Logout successful' });
+      });
+    } catch (error) {
+      // Handle any unexpected errors
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  });
 
 const generateMatricule = () => {
     // Generate a random number and convert it to a string
@@ -237,6 +255,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
         }
     });
         
-  export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount};
+
+
+  export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount, logoutUser};
+
 
  

@@ -10,9 +10,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const backupDirectoryPath = path.join(__dirname); // , 'backups' in case 
+const backupDirectoryPath = path.join(__dirname);
 
-// backupdata base function 
 
 
 export const backupDatabase = (filepath, tables) => {
@@ -20,18 +19,18 @@ export const backupDatabase = (filepath, tables) => {
     const databaseUser = process.env.DB_USER;
     const databasePassword = process.env.DB_PASSWORD;
     const databaseHost = process.env.DB_HOST;
-    const databasePort = process.env.DB_PORT;
+
     const databaseName = process.env.DB_DATABASE;
     
     let command;
 
     if (tables && tables.length > 0) {
     const tablesList = tables.join(' ');
-    command = `pg_dump -h ${databaseHost} -p ${databasePort} -U ${databaseUser} -d ${databaseName} 
-    --data-only --inserts -t ${tablesList} > ${filepath}`;
-
+    
+      command = `PGPASSWORD = "5Eq8jApoIJid" pg_dump ${databaseUser} -h ${databaseHost} -d ${databaseName}--data-only --inserts -t ${tablesList} > ${filepath}`;
+      
     } else {
-      command = `pg_dump -h ${databaseHost} -p ${databasePort} -U ${databaseUser} -d ${databaseName} --data-only --inserts > ${filepath}`;
+      command = `PGPASSWORD="5Eq8jApoIJid" pg_dump -U ${databaseUser} -h ${databaseHost} -d ${databaseName} --data-only > ${filepath}`;
     }
 
     exec(command, (error, stdout, stderr) => {
@@ -55,35 +54,14 @@ const createBackup = asyncHandler(async (req, res) => {
   
       // Generate a unique file name for the backup
       const timestamp = new Date().toISOString().replace(/:/g, '-');
-      const filename = `backup_${timestamp}.sql`;
+      const filename = `backup_${timestamp}.csv`; //
       const filepath = path.join(backupDirectoryPath, filename);
       console.log(`content of filename ${filename}`);
       console.log(`content of filename ${filepath}`);
-      // Create the backups directory if it doesn't exist
-    //   if (!fs.existsSync(backupDirectoryPath)) {
-    //     fs.mkdirSync(backupDirectoryPath, { recursive: true });
-    //   }
-  
-      // Check if a backup for the same tables already exists
-    //   const existingBackup = await Backup.findOne(
-    //     // {where: { tables: JSON.stringify(tables) },}
-    //     );
-  
-      // Create or update the backup record
+      
       let backup;
-    //   if (existingBackup) {
-    //     // Update the existing backup record
-    //     await backupDatabase(filepath, tables);
-    //     existingBackup.filename = filename;
-    //     existingBackup.filepath = filepath;
-    //     backup = await existingBackup.save();
-    //   } else {
-        // Create a new backup record
-        // await backupDatabase(filepath, tables);
-        backupDatabase(filepath, tables);
-        backup = await Backup.create({ filename, filepath}); // , tables: JSON.stringify(tables)  in case to store the table lists 
-    //   }
-  
+         await backupDatabase(filepath, tables); // to create backup file localy 
+        backup = await Backup.create({ filename, filepath}); // to create the backup record in the db 
       return res.status(200).json({
         message: 'Backup created/updated successfully',
         backup,

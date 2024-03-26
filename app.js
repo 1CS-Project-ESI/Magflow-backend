@@ -2,7 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import { pool } from "./config/dbConnection.js";
 import usersRoutes from "./routes/usersRoutes.js";
-import authRoutes from "./routes/authRoute.js"
+import authRoutes from "./routes/authRoutes.js";
+import rolesRoutes from "./routes/rolesRoutes.js";
+import permissionsRoutes from "./routes/permissionsRoutes.js";
 import bodyParser from "body-parser";
 import session from 'express-session';
 
@@ -26,6 +28,8 @@ const port= process.env.PORT|| 5000;
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/roles", rolesRoutes);
+app.use("/api/permissions", permissionsRoutes);
 app.use("/api/users", usersRoutes);
 
 // Execute a SQL query to test the db connection

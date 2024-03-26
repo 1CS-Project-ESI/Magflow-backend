@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import {sequelize,User} from './usersModel.js'; 
+import {Permission, RolePermissions} from "./permissionsModel.js"
 
 const Role = sequelize.define('roles', {
   id: {
@@ -50,5 +51,7 @@ const UsersRoles = sequelize.define('usersroles', {
   
 //   User.belongsToMany(Role, { through: UsersRoles });
 //   Role.belongsToMany(User, { through: UsersRoles });
+// Role.belongsToMany(Permission, { through: RolePermissions });
+// Permission.belongsToMany(Role, { through: RolePermissions });
 
 export  {Role,UsersRoles};

@@ -23,6 +23,7 @@ import {Role} from "../models/rolesModel.js";
 
 const updatePermissionRoles = async (req, res) => {
     try {
+
         const { id } = req.params;
         const { roles } = req.body;
 

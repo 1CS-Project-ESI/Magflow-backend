@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import {sequelize,User} from './usersModel.js';  // Assuming you have your Sequelize instance defined
+import {sequelize,User} from './usersModel.js'; 
 
 
 const applicationparams = sequelize.define('applicationparams', {
@@ -17,7 +17,7 @@ const applicationparams = sequelize.define('applicationparams', {
     allowNull: true,
   },
   tauxtva: {
-    type: DataTypes.DECIMAL(10, 2), // Assuming your tax rate is a decimal number with 2 decimal places
+    type: DataTypes.DECIMAL(10, 2), // tax rate is a decimal number with 2 decimal places
     allowNull: false,
   },
 } ,{

@@ -17,18 +17,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6M
 Content-Type: application/json
 
 {
-"firstname":"testing00",
-"lastname":"testing00",
-"email":"testing00@gmail.com",
+"firstname":"casRole",
+"lastname":"casRole",
+"email":"casRole1@gmail.com",
 "phone":"07777",
-"isactive":true,
 "password" : "abcd",
-"role" : "director"
+"isactive":true,
+"role" : "admin"
 }
 
 ### 
 
-DELETE  http://localhost:4000/api/users/62
+DELETE  http://localhost:4000/api/users/lasttest@gmail.com
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
 Content-Type: application/json
 

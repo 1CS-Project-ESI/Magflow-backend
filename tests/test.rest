@@ -1,0 +1,80 @@
+###
+POST http://localhost:4000/api/auth/login
+Content-Type: application/json
+
+{
+ "email": "updatedemail@example.com",
+ "password": "newpassword123"
+}
+###
+GET http://localhost:4000/api/users/AllUsers
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+###
+POST http://localhost:4000/api/users/createuser
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{
+"firstname":"testing00",
+"lastname":"testing00",
+"email":"testing00@gmail.com",
+"phone":"07777",
+"isactive":true,
+"password" : "abcd",
+"role" : "director"
+}
+
+### 
+
+DELETE  http://localhost:4000/api/users/62
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+###
+
+PUT  http://localhost:4000/api/users/modifyParams
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{
+  "establishmentname" :"test3",
+  "logo" :"test3",
+  "tauxtva" : 20
+}
+###
+PUT  http://localhost:4000/api/users/63 
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{
+"firstname":"testing01",
+"lastname":"testing01",
+"email":"testing01@gmail.com",
+"phone":"07777",
+"isactive":true,
+"password" : "abcd",
+"role" : "director"
+}
+
+
+###
+POST   http://localhost:4000/api/users/createbackups
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{
+    "table" :["users"]
+}
+// dump an array of tale or default :all tables 
+### 
+GET   http://localhost:4000/api/users/getAllBackups
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+
+
+
+
+

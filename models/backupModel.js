@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import {sequelize,User} from './usersModel.js';  // Assuming you have your Sequelize instance defined
+import {sequelize,User} from './usersModel.js'; 
 
 
 const Backup = sequelize.define('backup', {
@@ -17,6 +17,6 @@ const Backup = sequelize.define('backup', {
     allowNull: false,
   },
 }, {
-  timestamps: false, // Disable timestamps
+  timestamps: false, 
 });
 export default Backup ;

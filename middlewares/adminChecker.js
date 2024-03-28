@@ -8,9 +8,6 @@ const isAdmin = async (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ message: "Unauthorized. User not authenticated." });
         }
-        
-
-        // Retrieve the user ID from the authenticated user object
         const userId = req.user.id;                                                                                                                                                                                                                                      
 
         // Query the database to check if the user is an admin

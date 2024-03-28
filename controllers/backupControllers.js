@@ -43,9 +43,6 @@ export const backupDatabase = (filepath, tables) => {
   });
 };
 
-// end of funcion 
-
-
 
 
 const createBackup = asyncHandler(async (req, res) => {
@@ -93,15 +90,4 @@ const createBackup = asyncHandler(async (req, res) => {
       });
     }
   });
-
-
-
-
-
-
-
-
-
-
-
     export {createBackup , getAllBackups} ;

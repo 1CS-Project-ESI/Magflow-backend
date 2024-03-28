@@ -6,7 +6,6 @@ const addRole =asyncHandler (async (req, res) => {
     try {
         const { roleName } = req.body;
 
-        // Check if the role name is provided
         if (!roleName) {
             return res.status(400).json({ message: 'Role name is required' });
         }

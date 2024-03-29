@@ -11,11 +11,11 @@ const generateMatricule = () => {
     return 'MAT' + randomNumber;
 }; 
 
-const deleteUserById = asyncHandler(async (req, res) => {
+const deleteUserByemail = asyncHandler(async (req, res) => {
     try {
-        const { id } = req.params;
+        const { email } = req.params;
 
-        const user = await User.findOne({ where: { id } });
+        const user = await User.findOne({ where: { email } });
         // get user Rolename by his id 
         const deledtdUserRole = await UsersRoles.findOne({ where: { user_id: user.id } });
         const roleModelObj = await Role.findOne({ where: { id: deledtdUserRole.role_id } });
@@ -52,10 +52,10 @@ const deleteUserById = asyncHandler(async (req, res) => {
              await RoleTablename.destroy({ where: { user_id: user.id } });
           };
         // delete from UserRoles table 
-        await UsersRoles.destroy({ where: { user_id: id } }); 
+        await UsersRoles.destroy({ where: { user_id: user.id } }); 
         console.log("deleted from UserRoles table ");
           // delete from User table 
-        await User.destroy({ where: { id} });                
+        await User.destroy({ where: { id: user.id} });                
         console.log("deleted from User table ");
 
         return res.status(200).json({ message: "User deleted successfully" });
@@ -190,6 +190,6 @@ const updateUserById = asyncHandler(async (req, res) => {
     }
   });
 
-export { deleteUserById  , getAllUsers, updateUserById };
+export { deleteUserByemail  , getAllUsers, updateUserById };
 
  

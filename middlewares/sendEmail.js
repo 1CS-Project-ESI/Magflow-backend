@@ -41,7 +41,7 @@ const sendEmail = async (email, resettoken) => {
               <h2>Password Reset Request</h2>
               <p>Dear User,</p>
               <p>You recently requested to reset your password. To proceed with the password reset, please click the link below:</p>
-              <p><a href="http://localhost:4000/api/auth/reset-password/${resettoken}">Reset Password</a></p>
+              <p><a href="http://localhost:3001/resetPW2?resettoken=${resettoken}">Reset Password</a></p>
               <p>This link is valid for a single use only. If you did not request a password reset, please ignore this email.</p>
               <p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>
               <p>Thank you,<br>

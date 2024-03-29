@@ -1,8 +1,7 @@
 import asyncHandler from "express-async-handler";
-import jwt from "jsonwebtoken"
 import {User,Admin,Magasinier,StructureResponsable,Consumer,Director,AgentServiceAchat} from "../models/usersModel.js";
 import {UsersRoles,Role} from "../models/rolesModel.js";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 
 const generateMatricule = () => {
     // Generate a random number and convert it to a string
@@ -79,7 +78,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 const updateUserById = asyncHandler(async (req, res) => {
     try {
       const { id } = req.params; 
-      const { firstname, lastname, email, password, phone, isactive, role } = req.body; // Get updated user data from the request bod
+      const { firstname, lastname, email, password, phone, isactive, role , id_structure } = req.body; // Get updated user data from the request bod
 
      const user = await User.findOne({ where: { id } });
 
@@ -93,6 +92,7 @@ const updateUserById = asyncHandler(async (req, res) => {
       user.email = email;
       user.phone = phone;
       user.isactive = isactive;
+      user.id_structure = id_structure
   
       // If password is provided, hash and update it
       if (password) {

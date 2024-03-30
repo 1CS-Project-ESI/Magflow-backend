@@ -17,11 +17,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6M
 Content-Type: application/json
 
 {
-"firstname":"casRole",
-"lastname":"casRole",
-"email":"f.bencharef@esi-sba.dz",
+"firstname":"assil",
+"lastname":"assil",
+"email":"a.kahlerras@esi-sba.dz",
 "phone":"07777",
-"password" : "abcd",
+"password" : "123",
 "isactive":true,
 "role" : "admin"
 }
@@ -89,3 +89,40 @@ Content-Type: application/json
 "newPassword":"fatima",
 "confirmPassword":"fatima"
 }
+
+### 
+POST http://localhost:4000/api/users/activateaccount
+Content-Type: application/json
+
+{
+ "email": "f.bencharef@esi-sba.dz"
+}
+### 
+POST http://localhost:4000/api/users/deactivateAccount
+Content-Type: application/json
+
+{
+ "email": "f.bencharef@esi-sba.dz"
+}
+
+### 
+GET  http://localhost:4000/api/roles/getAllRoles
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+
+
+####
+POST http://localhost:4000/api/roles/update/:id 
+Content-Type: application/json
+// didnt test it yet 
+{ "permissions": ['permission1', 'permission2'] },
+
+
+###
+GET  http://localhost:4000/api/permissions/getAllPermissions
+Content-Type: application/json
+
+
+
+

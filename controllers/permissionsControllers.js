@@ -20,6 +20,16 @@ import {Role} from "../models/rolesModel.js";
 //         return res.status(500).json({ message: `Error creating permission: ${error.message}` });
 //     }
 // };
+const getAllPermissions = async(req,res)=>{
+    try {
+        const permissions = await Permission.findAll();
+        
+        res.status(200).json({permissions});
+
+    } catch (error){
+        res.status(500).json({message : "failed to get roles" , error : error.message})
+    }
+};
 
 const updatePermissionRoles = async (req, res) => {
     try {
@@ -69,4 +79,4 @@ const updatePermissionRoles = async (req, res) => {
     }
 };
 
-export { updatePermissionRoles };
+export { updatePermissionRoles ,getAllPermissions };

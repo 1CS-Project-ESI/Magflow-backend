@@ -1,10 +1,15 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
-import { updateRolePermissions , getAllRoles} from "../controllers/rolesController.js"
+
+import { updateRolePermissions ,getAllRoles} from "../controllers/rolesController.js"
+
 
 const router = express.Router();
-
+import cors from "cors";
+router.use(cors());
 // router.post('/add', validateToken, addRole);
-router.post('/update/:id', validateToken, updateRolePermissions);
-router.get('/allroles',getAllRoles)
+
+router.get('/getAllRoles',getAllRoles) // router.get('/allroles',getAllRoles) this one is better (we'll change it later) 
+router.post('/update/:id',  updateRolePermissions); //validateToken,
+
 export default router;

@@ -44,17 +44,16 @@ Content-Type: application/json
   "tauxtva" : 20
 }
 ###
-PUT  http://localhost:4000/api/users/63 
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+PUT  http://localhost:4000/api/users/f.bencharef@esi-sba.dz
 Content-Type: application/json
 
 {
-"firstname":"testing01",
-"lastname":"testing01",
-"email":"testing01@gmail.com",
+"firstname":"updateByemail",
+"lastname":" email1",
+"email1":"f.bencharef@esi-sba.dz",
 "phone":"07777",
 "isactive":true,
-"password" : "abcd",
+"password" : "fatima",
 "role" : "director"
 }
 

@@ -76,13 +76,13 @@ const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 
-const updateUserById = asyncHandler(async (req, res) => {
+const updateUserByEmail = asyncHandler(async (req, res) => {
     try {
-      const { id } = req.params; 
-      const { firstname, lastname, email, password, phone, isactive, role } = req.body; // Get updated user data from the request bod
-
-     const user = await User.findOne({ where: { id } });
-
+    
+    const { email } = req.params;
+    const { firstname, lastname, email1 ,password, phone, isactive, role } = req.body; 
+    const user = await User.findOne({ where: { email } });
+    console.log(user);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -90,7 +90,7 @@ const updateUserById = asyncHandler(async (req, res) => {
       // Update user data
       user.firstname = firstname;
       user.lastname = lastname;
-      user.email = email;
+      user.email = email1;
       user.phone = phone;
       user.isactive = isactive;
   
@@ -119,7 +119,7 @@ const updateUserById = asyncHandler(async (req, res) => {
         // update the UserRole by the new Role_id field 
         await UsersRoles.update( 
             { role_id: existingRole.id },
-            { where: { user_id: id } }
+            { where: { user_id: user.id } }
           );
         
         // add  user to his  new role table
@@ -190,6 +190,6 @@ const updateUserById = asyncHandler(async (req, res) => {
     }
   });
 
-export { deleteUserByemail  , getAllUsers, updateUserById };
+export { deleteUserByemail  , getAllUsers, updateUserByEmail };
 
  

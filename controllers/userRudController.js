@@ -80,7 +80,7 @@ const updateUserByEmail = asyncHandler(async (req, res) => {
     try {
     
     const { email } = req.params;
-    const { firstname, lastname, email1 ,password, phone, isactive, role } = req.body; 
+    const { firstname, lastname, newEmail ,password, phone, isactive, role } = req.body; 
     const user = await User.findOne({ where: { email } });
     console.log(user);
       if (!user) {
@@ -90,7 +90,7 @@ const updateUserByEmail = asyncHandler(async (req, res) => {
       // Update user data
       user.firstname = firstname;
       user.lastname = lastname;
-      user.email = email1;
+      user.email = newEmail;
       user.phone = phone;
       user.isactive = isactive;
   
@@ -186,7 +186,9 @@ const updateUserByEmail = asyncHandler(async (req, res) => {
 
       return res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
+        
       return res.status(500).json({ message: "Error updating user", error: error.message });
+      
     }
   });
 

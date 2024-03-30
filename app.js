@@ -1,10 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
-import { pool } from "./config/dbConnection.js";
 import usersRoutes from "./routes/usersRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import rolesRoutes from "./routes/rolesRoutes.js";
 import permissionsRoutes from "./routes/permissionsRoutes.js";
+import strctureRoutes from "./routes/structureRoutes.js" ;
 import bodyParser from "body-parser";
 import session from 'express-session';
 
@@ -31,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/roles", rolesRoutes);
 app.use("/api/permissions", permissionsRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/structures", strctureRoutes);
 
 // Execute a SQL query to test the db connection
 // pool.query('select * from admin')

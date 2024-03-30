@@ -86,4 +86,4 @@ const updateRolePermissions = async (req, res) => {
     }
 };
 
-export {  updateRolePermissions ,getAllRoles };
+export {  updateRolePermissions,getAllRoles };

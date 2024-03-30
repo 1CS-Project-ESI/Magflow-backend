@@ -45,18 +45,26 @@ const User = sequelize.define('users', {
   },
   isactive: {
     type: DataTypes.BOOLEAN,
-    defaultValue:true
+    defaultValue: true
   },
   resettoken: {
     type: DataTypes.STRING(255),
-    allowNull: true, //
+    allowNull: true,
   },
   resettokenexpiration: {
     type: DataTypes.DATE,
     allowNull: true,
   },
-},{
-  timestamps : false,
+  id_structure: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'structure', // Name of the referenced table
+      key: 'id' // Primary key in the referenced table
+    }
+  }
+}, {
+  timestamps: false,
 });
 
 

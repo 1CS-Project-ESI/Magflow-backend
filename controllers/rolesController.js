@@ -27,6 +27,18 @@ import {RolePermissions,Permission} from "../models/permissionsModel.js"
 //     }
 // });
 
+const getAllRoles = async(req,res)=>{
+    try {
+        const roles = await Role.findAll();
+        
+        res.status(200).json({roles});
+
+    } catch (error){
+        res.status(500).json({message : "failed to get roles" , error : error.message})
+    }
+};
+
+
 const updateRolePermissions = async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,4 +86,4 @@ const updateRolePermissions = async (req, res) => {
     }
 };
 
-export {  updateRolePermissions };
+export {  updateRolePermissions ,getAllRoles };

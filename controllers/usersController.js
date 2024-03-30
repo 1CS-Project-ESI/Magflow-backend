@@ -87,10 +87,12 @@ const createUser = asyncHandler(async (req, res) => {
     try {
         const { firstname, lastname, email, password, phone, isactive, role,id_structure } = req.body;
 
+
         // Validate required fields
         // if (!firstname || !lastname || !email || !password || !phone || !isactive || !role || !id_structure) {
         //     return res.status(400).json({ message: "All fields are mandatory" });
         // };
+
 
         const existingRole = await Role.findOne({ where: { name: role } });
         if (!existingRole) {

@@ -4,6 +4,8 @@ import {resetPassword, forgotPassword, loginUser, logoutUser} from "../controlle
 
 
 const router = express.Router();
+import cors from "cors";
+router.use(cors());
 
 router.post("/login", loginUser);
 router.post('/logout', validateToken, logoutUser);

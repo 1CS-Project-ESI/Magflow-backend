@@ -1,5 +1,5 @@
 import express from "express";
-import {deleteUserById, getAllUsers, updateUserById} from "../controllers/userRudController.js"
+import {deleteUserByemail, getAllUsers, updateUserByEmail} from "../controllers/userRudController.js"
 import { createUser, currentUser , deactivateAccount , activateAccount} from "../controllers/usersController.js";
 import modifyParams from "../controllers/paramController.js";
 import { validateToken } from "../middlewares/validateTokenHandler.js";
@@ -14,17 +14,17 @@ import cors from "cors";
 router.use(cors());
 // Define routes (endpoints)
 
-router.delete("/:id",validateToken , isAdmin ,deleteUserById);
-router.get("/AllUsers", validateToken, isAdmin ,getAllUsers);
-router.put("/modifyParams",validateToken, isAdmin ,modifyParams);
-router.put("/:id",validateToken, isAdmin ,updateUserById);
-router.post("/createuser", validateToken, isAdmin ,createUser); 
-router.post("/deactivateaccount" , validateToken , isAdmin , deactivateAccount );
-router.post("/activateaccount" , validateToken , isAdmin , activateAccount );
-router.get("/currentuser",validateToken, isAdmin ,currentUser)
+router.delete("/:email",deleteUserByemail); // link done,,validateToken , isAdmin ,
+router.get("/AllUsers",getAllUsers); // link done  ,validateToken , isAdmin
+router.put("/modifyParams",modifyParams); //,validateToken, isAdmin ,
+router.put("/:email" ,updateUserByEmail); //,validateToken, isAdmin
+router.post("/createuser",createUser);  //  link done ,validateToken , isAdmin
+router.post("/deactivateaccount"  , deactivateAccount ); //, validateToken , isAdmi
+router.post("/activateaccount"  , activateAccount );//, validateToken , isAdmin
+router.get("/currentuser" ,currentUser) //,validateToken, isAdmin
 
-router.post('/createbackups', validateToken , isAdmin, createBackup);
-router.get("/getAllBackups", validateToken , isAdmin, getAllBackups)
+router.post('/createbackups', createBackup); //, validateToken , isAdmin
+router.get("/getAllBackups", getAllBackups) //, validateToken , isAdmin
 
 
 

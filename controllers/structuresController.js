@@ -69,5 +69,22 @@ const getResponsableStructure = asyncHandler(async (req, res) => {
     }
 });
 
+
+
+const getStructureUsers = async(req,res)=>{
+
+    try {
+    const {id} = req.params;
+
+   const users = await User.findAll({
+    where :{
+        id_structure :id 
+    }
+   }) 
+    return res.status(200).json({message : 'you got the structure users successfullyy ' , users})
+} catch (error) {
+    return res.status(500).json({message : 'you failed getting structure users' , message : error.message})
+}
+}
   
-  export {getResponsableStructure,getAllStructures,deleteStructure};
+  export {getResponsableStructure,getAllStructures,deleteStructure,getStructureUsers};

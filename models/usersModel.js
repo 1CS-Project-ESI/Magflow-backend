@@ -57,7 +57,7 @@ const User = sequelize.define('users', {
   },
   id_structure: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: 'structure', // Name of the referenced table
       key: 'id' // Primary key in the referenced table

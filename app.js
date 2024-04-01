@@ -33,7 +33,7 @@ app.use("/api/roles", rolesRoutes);
 app.use("/api/permissions", permissionsRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/structures", strctureRoutes);
-app.use("api/store", productRoutes);
+app.use("/api/store", productRoutes);
 
 // Execute a SQL query to test the db connection
 // pool.query('select * from admin')

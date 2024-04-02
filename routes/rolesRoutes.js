@@ -9,7 +9,7 @@ import cors from "cors";
 router.use(cors());
 // router.post('/add', validateToken, addRole);
 
-router.get('/getAllRoles',getAllRoles) // router.get('/allroles',getAllRoles) this one is better (we'll change it later) 
-router.post('/update/:id',  updateRolePermissions); //validateToken,
+router.get('/getAllRoles',validateToken,getAllRoles) // router.get('/allroles',getAllRoles) this one is better (we'll change it later) 
+router.post('/update/:id' ,validateToken,updateRolePermissions); //validateToken,
 
 export default router;

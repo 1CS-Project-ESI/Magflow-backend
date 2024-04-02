@@ -28,8 +28,8 @@ Content-Type: application/json
 
 ### 
 
-DELETE  http://localhost:4000/api/users/testing12@gmail.com
-x-access-token : 123
+DELETE  http://localhost:4000/api/users/strucutreresponsable2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI5LCJpYXQiOjE3MTIwNzcxODIsImV4cCI6MTcxMjE2MzU4Mn0.HNNrwT2_cUwRwifMBIp68gibuZJ145VFPk1yD4Zy1so
 Content-Type: application/json
 
 ###
@@ -128,16 +128,31 @@ Content-Type: application/json
   ]
 }
 
+###
 
+POST http://localhost:4000/api/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI5LCJpYXQiOjE3MTIwNjI1MjgsImV4cCI6MTcxMjE0ODkyOH0.1uaHt7FvgTu9tv1vfZ1JuGhcKmgSU21xPEqieeKW0g0
+Content-Type: application/json
 ###
 GET  http://localhost:4000/api/structures/allstructures
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
 Content-Type: application/json
 
+
 ###
-POST http://localhost:4000/api/auth/logout
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI5LCJpYXQiOjE3MTIwNjI1MjgsImV4cCI6MTcxMjE0ODkyOH0.1uaHt7FvgTu9tv1vfZ1JuGhcKmgSU21xPEqieeKW0g0
+GET  http://localhost:4000/api/structures/users/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
 Content-Type: application/json
+
+###
+DELETE http://localhost:4000/api/structures/delete/3
+
+### 
+GET http://localhost:4000/api/structures/responsable/1
+
+
+
+
 
 
 

@@ -37,15 +37,15 @@ const BonCommande = sequelize.define('BonCommande', {
     },
     total_HT: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     },
     tva: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     },
     total_TTC: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     }
 }, {
     tableName: 'boncommande',
@@ -110,7 +110,7 @@ const ProduitsDelivres = sequelize.define('ProduitDelivres', {
     },
     receivedQuantity: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     }
 }, {
     tableName: 'produitsdelivres',

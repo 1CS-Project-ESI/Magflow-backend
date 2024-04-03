@@ -4,6 +4,17 @@ import { Consumer, StructureResponsable, User } from "../models/usersModel.js";
 
 
 
+const addStructure = async(req,res) =>{
+  try{
+  const {name} = req.body;
+
+  const structure = await Structure.create({name})
+
+  res.status(200).json({message : "structure created succesfully : ", structure})
+} catch (error) {
+  res.status(500).json({message : "error creating structure" , error : message.error})
+}
+}
 
 const getResponsableStructure = asyncHandler(async (req, res) => {
     try {
@@ -86,5 +97,27 @@ const getStructureUsers = async(req,res)=>{
     return res.status(500).json({message : 'you failed getting structure users' , message : error.message})
 }
 }
+
+
+
+const addConsumerStructure = async (req, res) => {
+  try {
+    // Extract the required data from the request body
+    const { userId, structureId } = req.params;
+
+    // Find the consumer by user_id
+    const consumer = await Consumer.findOne({ where: { user_id: userId } });
+    if (!consumer) {
+      return res.status(404).json({ message: "Consumer not found" });
+    }
+
+    // Update the consumer's structure
+    await consumer.update({ id_structure: structureId });
+
+    return res.status(200).json({ message: "Consumer structure updated successfully", consumer });
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating consumer structure", error: error.message });
+  }
+};
   
-  export {getResponsableStructure,getAllStructures,deleteStructure,getStructureUsers};
+  export {getResponsableStructure,getAllStructures,deleteStructure,getStructureUsers,addConsumerStructure,addStructure};

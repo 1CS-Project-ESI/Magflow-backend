@@ -5,10 +5,6 @@ const router = express.Router();
 import cors from "cors";
 router.use(cors());
 
-
-import cors from "cors";
-router.use(cors());
-
 router.get('/allstructures',validateToken,getAllStructures);
 router.get('/responsable/:id',validateToken,getResponsableStructure);
 router.get('/users/:id',validateToken,getStructureUsers);

@@ -6,6 +6,7 @@ import rolesRoutes from "./routes/rolesRoutes.js";
 import permissionsRoutes from "./routes/permissionsRoutes.js";
 import strctureRoutes from "./routes/structureRoutes.js" ;
 import productRoutes from "./routes/productRoutes.js";
+import bonsRoute from "./routes/bonsRoute.js";
 import bodyParser from "body-parser";
 import session from 'express-session';
 
@@ -34,6 +35,7 @@ app.use("/api/permissions", permissionsRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/structures", strctureRoutes);
 app.use("/api/store", productRoutes);
+app.use("/api/bons",bonsRoute);
 
 // Execute a SQL query to test the db connection
 // pool.query('select * from admin')

@@ -156,4 +156,31 @@ GET http://localhost:4000/api/structures/responsable/1
 
 
 
+### 
+POST http://localhost:4000/api/bons/create/130
+
+{
+  "number": 123456,
+  "orderdate": "2024-04-01",
+  "deliverydate": "2024-04-15",
+  "orderspecifications": "Example order specifications",
+  "status": "Pending",
+  "productDetails": [
+    {
+      "productId": 8,
+      "orderedQuantity": 5
+    },
+    {
+      "productId": 9,
+      "orderedQuantity": 10
+    }
+  ]
+}
+
+
+
+
+
+
+
 

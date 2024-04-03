@@ -1,10 +1,11 @@
 import expressAsyncHandler from "express-async-handler";
-import { Chapter,Article ,Product  } from "../models/productsModel.js";
+import { Chapitre,Article ,Produit  } from "../models/productsModel.js";
 
 const addChapter = async(req,res) => {
-    const {name} = req.body;
+    const {id} = req.params;
+    const {name,description} = req.body;
 try{
-    const chapter = await Chapter.create({name});
+    const chapter = await Chapitre.create({name,description,id_agentserviceachat:id});
     return res.status(200).json(chapter) ;
 } catch (error) {
     res.status(500).json({message : "failed to add chapter " ,error : error.message})
@@ -14,9 +15,9 @@ try{
 const addArticle = async(req,res)=> {
     try {
         const {chapterId} = req.params;
-        const {name} = req.body;
+        const {name,description,tva} = req.body;
 
-        const article = await Article.create({chapter_id:chapterId,name})
+        const article = await Article.create({chapter_id:chapterId,name,description,tva})
 
         res.status(200).json(article)
     } catch (error) {
@@ -27,9 +28,9 @@ const addArticle = async(req,res)=> {
 const addProduct = async(req,res)=> {
     try {
         const {articleId} = req.params;
-        const {name,price} = req.body;
+        const {name,price,caracteristics} = req.body;
 
-        const product = await Product.create({article_id:articleId,name,price})
+        const product = await Produit.create({article_id:articleId,name,price,caracteristics})
 
         res.status(200).json(product)
     } catch (error) {
@@ -41,7 +42,7 @@ const addProduct = async(req,res)=> {
 const getAllchapters = async (req, res) => {
     try {
       // Find all structures
-      const chapters = await Chapter.findAll();
+      const chapters = await Chapitre.findAll();
   
       // Return the list of structures
       return res.status(200).json({ chapters });
@@ -65,7 +66,7 @@ const getAllchapters = async (req, res) => {
   const getAllProducts = async (req, res) => {
     try {
       // Find all structures
-      const products = await Product.findAll();
+      const products = await Produit.findAll();
   
       // Return the list of structures
       return res.status(200).json({ products });
@@ -93,7 +94,7 @@ const getArticleProducts = async (req, res) => {
         const { articleId } = req.params; // Extract chapterId from request parameters
 
         // Find all articles with the specified chapter ID
-        const products = await Product.findAll({ where: { article_id: articleId } });
+        const products = await Produit.findAll({ where: { article_id: articleId } });
 
         res.status(200).json(products); // Return the articles
     } catch (error) {
@@ -106,7 +107,7 @@ const deleteProduct = async (req, res) => {
         const { productId } = req.params; // Extract productId from request parameters
 
         // Find the product by ID
-        const product = await Product.findByPk(productId);
+        const product = await Produit.findByPk(productId);
 
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
@@ -133,7 +134,7 @@ const deleteArticleIfEmpty = async (req, res) => {
         }
 
         // Check if the article has any associated products
-        const productsCount = await Product.count({ where: { article_id: articleId } });
+        const productsCount = await Produit.count({ where: { article_id: articleId } });
 
         if (productsCount > 0) {
             return res.status(400).json({ message: 'Cannot delete article because it contains products' });
@@ -152,7 +153,7 @@ const deleteChapterIfEmpty = async (req, res) => {
         const { chapterId } = req.params; // Extract chapterId from request parameters
 
         // Find the chapter by ID
-        const chapter = await Chapter.findByPk(chapterId);
+        const chapter = await Chapitre.findByPk(chapterId);
 
         if (!chapter) {
             return res.status(404).json({ message: 'Chapter not found' });

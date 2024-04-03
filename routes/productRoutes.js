@@ -4,7 +4,7 @@ import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllch
 
 const router = express.Router();
 
-router.post('/chapter/create',addChapter);
+router.post('/chapter/create/:id',addChapter);
 router.post('/article/create/:chapterId',addArticle);
 router.post('/product/create/:articleId',addProduct);
 router.get('/chapter/all',getAllchapters);

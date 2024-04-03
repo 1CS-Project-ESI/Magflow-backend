@@ -54,14 +54,6 @@ const User = sequelize.define('users', {
   resettokenexpiration: {
     type: DataTypes.DATE,
     allowNull: true,
-  },
-  id_structure: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'structure', // Name of the referenced table
-      key: 'id' // Primary key in the referenced table
-    }
   }
 }, {
   timestamps: false,
@@ -141,6 +133,14 @@ const Consumer = sequelize.define('consumer', {
   matricule: {
     type: DataTypes.STRING(20),
     allowNull: false,
+  },
+  id_structure: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'structures', // Name of the referenced table
+      key: 'id' // Primary key in the referenced table
+    }
   },
 }, {
   tableName:'consumer',

@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import {Structure} from "../models/structuresModel.js";
-import { StructureResponsable, User } from "../models/usersModel.js";
+import { Consumer, StructureResponsable, User } from "../models/usersModel.js";
 
 
 
@@ -55,7 +55,7 @@ const getResponsableStructure = asyncHandler(async (req, res) => {
         const { structureId } = req.params;
 
         // Check if the structure has any associated users
-        const usersCount = await User.count({ where: { id_structure: structureId } });
+        const usersCount = await Consumer.count({ where: { id_structure: structureId } });
         if (usersCount > 0) {
             return res.status(400).json({ message: "Cannot delete structure. It has associated users." });
         };
@@ -76,7 +76,7 @@ const getStructureUsers = async(req,res)=>{
     try {
     const {id} = req.params;
 
-   const users = await User.findAll({
+   const users = await Consumer.findAll({
     where :{
         id_structure :id 
     }

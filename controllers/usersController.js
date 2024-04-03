@@ -85,7 +85,7 @@ const generateMatricule = () => {
 };
 const createUser = asyncHandler(async (req, res) => {
     try {
-        const { firstname, lastname, email, password, phone, isactive, role,id_structure } = req.body;
+        const { firstname, lastname, email, password, phone, isactive, role} = req.body;
 
 
         // Validate required fields
@@ -115,8 +115,7 @@ const createUser = asyncHandler(async (req, res) => {
             email,
             password: hashedPassword,
             phone,
-            isactive,
-            id_structure,
+            isactive
         });
 
         let roleModel;

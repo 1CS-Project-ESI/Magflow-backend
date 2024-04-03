@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import {sequelize} from './usersModel.js'; 
 
-const Chapter = sequelize.define('chapter', {
+const Chapitre = sequelize.define('chapitre', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -10,10 +10,22 @@ const Chapter = sequelize.define('chapter', {
     name: {
       type: DataTypes.STRING(255),
       allowNull: false
+    },
+    description: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
+    id_agentserviceachat: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'agentserviceachat', // Name of the referenced table
+        key: 'user_id' // Primary key in the referenced table
+      }
     }
   },{
     timestamps : false ,
-    tableName : 'chapter'
+    tableName : 'chapitre'
   });
 
   const Article = sequelize.define('article', {
@@ -26,7 +38,7 @@ const Chapter = sequelize.define('chapter', {
       type: DataTypes.INTEGER, // This is the foreign key attribute
       allowNull: false,
       references: {
-        model: 'Chapter', // This is the target model
+        model: 'Chapitre', // This is the target model
         key: 'id' // This is the target key attribute
       }
     },
@@ -34,16 +46,21 @@ const Chapter = sequelize.define('chapter', {
       type: DataTypes.STRING,
       allowNull: false
     },
-    image: {
-      type: DataTypes.STRING,
-      allowNull: true
+    description: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
+    tva: {
+      type: DataTypes.DECIMAL(10, 2), // Define the price field with appropriate precision and scale
+      allowNull: false,
     }
+    
   },{
     timestamps : false ,
     tableName : 'article'
   });
 
-  const Product = sequelize.define('product', {
+  const Produit = sequelize.define('produit', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -61,18 +78,19 @@ const Chapter = sequelize.define('chapter', {
       type: DataTypes.STRING,
       allowNull: false
     },
-    image: {
+    caracteristics: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
+    
     price: {
         type: DataTypes.DECIMAL(10, 2), // Define the price field with appropriate precision and scale
         allowNull: false,
       }
   },{
     timestamps : false ,
-    tableName : 'product'
+    tableName : 'produit'
   });
 
 
-  export {Chapter ,Article, Product};
+  export {Chapitre ,Article, Produit};

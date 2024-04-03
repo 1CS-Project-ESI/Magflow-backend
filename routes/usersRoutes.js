@@ -14,17 +14,17 @@ import cors from "cors";
 router.use(cors());
 // Define routes (endpoints)
 
-router.delete("/:email",deleteUserByemail); // link done,,validateToken , isAdmin ,
-router.get("/AllUsers",getAllUsers); // link done  ,validateToken , isAdmin
-router.put("/modifyParams",modifyParams); //,validateToken, isAdmin ,
-router.put("/:email" ,updateUserByEmail); //,validateToken, isAdmin
-router.post("/createuser",createUser);  //  link done ,validateToken , isAdmin
-router.post("/deactivateaccount"  , deactivateAccount ); //, validateToken , isAdmi
-router.post("/activateaccount"  , activateAccount );//, validateToken , isAdmin
-router.get("/currentuser" ,currentUser) //,validateToken, isAdmin
+router.delete("/:email",validateToken, deleteUserByemail); 
+router.get("/AllUsers",validateToken,getAllUsers); 
+router.put("/modifyParams",validateToken,modifyParams);
+router.put("/:email" ,validateToken,updateUserByEmail); 
+router.post("/createuser",validateToken,createUser);  
+router.post("/deactivateaccount" ,validateToken , deactivateAccount ); 
+router.post("/activateaccount"  ,validateToken, activateAccount );
+router.get("/currentuser" ,currentUser)
 
-router.post('/createbackups', createBackup); //, validateToken , isAdmin
-router.get("/getAllBackups", getAllBackups) //, validateToken , isAdmin
+router.post('/createbackups',validateToken, createBackup); 
+router.get("/getAllBackups",validateToken, getAllBackups) 
 
 
 

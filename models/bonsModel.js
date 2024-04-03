@@ -7,11 +7,11 @@ const BonCommande = sequelize.define('BonCommande', {
         primaryKey: true,
         autoIncrement: true,
     },
-    id_agentServiceAchat: {
+    id_agentserviceachat: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'AgentServiceAchat',
+            model: 'agentServiceachat',
             key: 'user_id'
         }
     },
@@ -19,15 +19,15 @@ const BonCommande = sequelize.define('BonCommande', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    orderDate: {
+    orderdate: {
         type: DataTypes.DATE,
         allowNull: false,
     },
-    deliveryDate: {
+    deliverydate: {
         type: DataTypes.DATE,
         allowNull: false,
     },
-    orderSpecifications: {
+    orderspecifications: {
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -35,17 +35,17 @@ const BonCommande = sequelize.define('BonCommande', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    total_HT: {
+    total_ht: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     },
     tva: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     },
-    total_TTC: {
+    total_ttc: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     }
 }, {
     tableName: 'boncommande',
@@ -83,20 +83,22 @@ const ProduitsDelivres = sequelize.define('ProduitDelivres', {
     id_produit: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        primaryKey: true,
         references: {
             model: 'Produit',
             key: 'id'
         }
     },
-    id_bonCommande: {
+    id_boncommande: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        primaryKey: true,
         references: {
             model: 'BonCommande',
             key: 'id'
         }
     },
-    id_bonReception: {
+    id_bonreception: {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
@@ -104,13 +106,13 @@ const ProduitsDelivres = sequelize.define('ProduitDelivres', {
             key: 'id'
         }
     },
-    orderedQuantity: {
+    orderedquantity: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    receivedQuantity: {
+    receivedquantity: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
     }
 }, {
     tableName: 'produitsdelivres',

@@ -70,7 +70,7 @@ const BonReception = sequelize.define('BonReception', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    deliveryDate: {
+    deliverydate: {
         type: DataTypes.DATE,
         allowNull: false,
     },
@@ -112,7 +112,8 @@ const ProduitsDelivres = sequelize.define('ProduitDelivres', {
     },
     receivedquantity: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
+        defaultValue: 0, 
     }
 }, {
     tableName: 'produitsdelivres',

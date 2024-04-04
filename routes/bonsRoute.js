@@ -1,14 +1,15 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
 
-import { createBonCommande, createBonRepection, RemainingProducts } from "../controllers/bonsController.js";
-
+import { createBonCommande ,createBonRepection, getAllCommands ,getAllProductsOfCommand, RemainingProducts} from "../controllers/bonsController.js";
 
 const router = express.Router();
 
 
-router.post('/create-bon-commande/:id_agentServiceAchat',validateToken, createBonCommande);
+router.post('/create/:id_agentServiceAchat',validateToken,createBonCommande);
 router.post('/create-bon-reception/:id_magasinier',validateToken, createBonRepection);
-router.get('/remaining-products/:ReceptionId', RemainingProducts)
+router.get('/allcommands',validateToken, getAllCommands);
+router.get('/commandproducts/:command_id',validateToken,getAllProductsOfCommand);
+router.get('/remaining-products/:ReceptionId',validateToken, RemainingProducts)
 
 export default router;

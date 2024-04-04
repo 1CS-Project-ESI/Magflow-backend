@@ -54,6 +54,7 @@ const createBonCommande = async (req, res) => {
     }
 };
 
+
 const createBonRepection = async (req, res) => {
     try {
         const { id_magasinier } = req.params;
@@ -84,6 +85,54 @@ const createBonRepection = async (req, res) => {
         res.status(200).json({ message: 'BonReception created successfully', bonReception });
     } catch (error) {
         res.status(500).json({ message: 'Failed to create BonReception', error: error.message });
+    }
+};
+
+
+const getAllCommands = async(req,res) =>{
+    try {
+        const commands =await BonCommande.findAll();
+        res.status(200).json({message : 'the list of commands : ' , commands })        
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to get commands', error: error.message }); 
+    }
+}
+
+
+const getAllProductsOfCommand = async (req, res) => {
+    try {
+        const { command_id } = req.params;
+
+        // Find the command by ID
+        const command = await BonCommande.findByPk(command_id);
+
+        if (!command) {
+            return res.status(404).json({ message: 'Command not found' });
+        }
+
+        // Find all products delivered for this command
+        const productsData = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: command_id
+            },
+            attributes: ['id_produit', 'orderedquantity'] // Only fetch necessary attributes
+        });
+
+        // Get details of each product using separate queries
+        const products = [];
+        for (const productData of productsData) {
+            const { id_produit, orderedquantity } = productData;
+            const product = await Produit.findByPk(id_produit, {
+                attributes: ['id', 'name', 'caracteristics', 'price'] // Fetch product details
+            });
+            if (product) {
+                products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
+            }
+        }
+
+        res.status(200).json({ products });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch products of command', error: error.message });
     }
 };
 
@@ -121,5 +170,5 @@ const RemainingProducts = async (req, res) => {
     }
 };
 
+export { createBonCommande , createBonRepection, getAllCommands, getAllProductsOfCommand, RemainingProducts};
 
-export { createBonCommande, createBonRepection, RemainingProducts};

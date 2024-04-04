@@ -150,10 +150,18 @@ DELETE http://localhost:4000/api/structures/delete/3
 ### 
 GET http://localhost:4000/api/structures/responsable/1
 
+###
+POST : http://localhost:4000/api/users/createuser
 
-
-
-
+{
+    "firstname": "houyem",
+    "lastname": "b",
+    "email": "exemple@gmail.com",
+    "password": "123",
+    "phone": "0555555555",
+    "isactive": true,
+    "role": "magasinier"
+}
 
 
 ### 
@@ -177,7 +185,16 @@ POST http://localhost:4000/api/bons/create/130
   ]
 }
 
+### 
+POST : http://localhost:4000/api/bons/create-bon-reception/131
 
+{
+    "number": 123,
+    "commandeNumber":123456,
+    "deliverydate": "2024-04-12",
+    "products": [8, 9],
+    "receivedQuantities": [1, 10]
+}
 
 
 

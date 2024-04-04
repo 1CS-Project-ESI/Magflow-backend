@@ -37,22 +37,6 @@ app.use("/api/structures", strctureRoutes);
 app.use("/api/store", productRoutes);
 app.use("/api/bons",bonsRoute);
 
-// Execute a SQL query to test the db connection
-// pool.query('select * from admin')
-//   .then(result => {
-//     // Handle the result of the query
-//     console.log('Admins retrieved successfully:', result.rows);
-//   })
-//   .catch(error => {
-//     // Handle any errors that occurred during the query
-//     console.error('Error retrieving admins:', error);
-//   })
-//   .finally(() => {
-//     // Close the database connection
-//     pool.end();
-//   });
-
-
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`);
   });

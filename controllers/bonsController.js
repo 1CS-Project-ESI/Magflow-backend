@@ -1,5 +1,6 @@
 import { BonCommande , BonReception, ProduitsDelivres } from "../models/bonsModel.js";
 import { Article , Produit } from "../models/productsModel.js";
+import { Sequelize } from 'sequelize';
 
 
 const createBonCommande = async (req, res) => {
@@ -17,8 +18,6 @@ const createBonCommande = async (req, res) => {
         });
 
         // Receive product IDs and quantities from frontend
-        
-
         let total_ht = 0;
         let total_ttc = 0;
 
@@ -27,10 +26,8 @@ const createBonCommande = async (req, res) => {
         for (const productDetail of productDetails) {
             const { productId, orderedQuantity } = productDetail;
 
-            // Fetch the product from database
             const produit = await Produit.findByPk(productId);
 
-            // Calculate total_ht
             total_ht += produit.price * orderedQuantity;
 
             // Calculate total_ttc (assuming tva is stored in Article)
@@ -38,22 +35,17 @@ const createBonCommande = async (req, res) => {
             const tva = article.tva;
             total_ttc += (produit.price * (1 + tva / 100)) * orderedQuantity;
 
-            // Create entry in ProduitsDelivres table for each product
             await ProduitsDelivres.create({
                 id_produit: productId,
                 id_boncommande: boncommande.id,
                 orderedquantity : orderedQuantity
             })
 
-
             await boncommande.update({
                 total_ht,
                 tva: total_ttc - total_ht,
                 total_ttc
-            });
-    
-
-            
+            });        
         }
 
         res.status(200).json({ message: 'BonCommande created successfully', boncommande });
@@ -61,6 +53,7 @@ const createBonCommande = async (req, res) => {
         res.status(500).json({ message: 'Failed to create BonCommande', error: error.message });
     }
 };
+
 
 const createBonRepection = async (req, res) => {
     try {
@@ -95,6 +88,7 @@ const createBonRepection = async (req, res) => {
     }
 };
 
+
 const getAllCommands = async(req,res) =>{
     try {
         const commands =await BonCommande.findAll();
@@ -103,6 +97,7 @@ const getAllCommands = async(req,res) =>{
         res.status(500).json({ message: 'Failed to get commands', error: error.message }); 
     }
 }
+
 
 const getAllProductsOfCommand = async (req, res) => {
     try {
@@ -141,6 +136,39 @@ const getAllProductsOfCommand = async (req, res) => {
     }
 };
 
+const RemainingProducts = async (req, res) => {
+    try {
+        const ReceptionId = req.params.ReceptionId;
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllProductsOfCommand};
+        const remainingProducts = await ProduitsDelivres.findAll({
+            where: {
+                id_bonreception: ReceptionId,
+                receivedquantity: {
+                    [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
+                }
+            },
+            attributes: ['id_produit', 'orderedquantity', 'receivedquantity'],
+            include: [{ model: Produit, as: 'produit' }] // Include Produit model with alias 'produit'
+        });
+
+
+        const remainingProductsInfo = remainingProducts.map(product => {
+            const remainingQuantity = product.orderedquantity - product.receivedquantity;
+            return {
+                productId: product.id_produit,
+                productName: product.produit.name, // Access name through alias 'produit'
+                orderedQuantity: product.orderedquantity,
+                receivedQuantity: product.receivedquantity,
+                remainingQuantity: remainingQuantity
+            };
+        });
+
+        res.status(200).json({ remainingProducts: remainingProductsInfo });
+    } catch (error) {
+        console.error('Error fetching remaining products:', error);
+        res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
+    }
+};
+
+export { createBonCommande , createBonRepection, getAllCommands, getAllProductsOfCommand, RemainingProducts};
 

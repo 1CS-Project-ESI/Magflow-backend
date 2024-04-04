@@ -196,7 +196,8 @@ POST : http://localhost:4000/api/bons/create-bon-reception/131
     "receivedQuantities": [1, 10]
 }
 
-
+###
+GET : http://localhost:4000/api/bons/remaining-products/16 
 
 
 

@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import {sequelize} from './usersModel.js'; 
+import { Produit } from './productsModel.js';
 
 const BonCommande = sequelize.define('BonCommande', {
     id: {
@@ -121,4 +122,5 @@ const ProduitsDelivres = sequelize.define('ProduitDelivres', {
     timestamps: false,
 });
 
+ProduitsDelivres.belongsTo(Produit, { foreignKey: 'id_produit', as: 'produit' });
 export {BonReception, BonCommande, ProduitsDelivres}

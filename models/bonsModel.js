@@ -18,6 +18,7 @@ const BonCommande = sequelize.define('BonCommande', {
     number: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        unique : true,
     },
     orderdate: {
         type: DataTypes.DATE,

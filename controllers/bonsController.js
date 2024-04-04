@@ -1,5 +1,6 @@
 import { BonCommande , BonReception, ProduitsDelivres } from "../models/bonsModel.js";
 import { Article , Produit } from "../models/productsModel.js";
+import {Op} from 'sequelize'
 
 
 const createBonCommande = async (req, res) => {
@@ -142,5 +143,58 @@ const getAllProductsOfCommand = async (req, res) => {
 };
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllProductsOfCommand};
+const getProductsWithQuantityDelivered = async (req, res) => {
+    try {
+        const { commandId } = req.params;
+
+        // Find the command by ID
+        const command = await BonCommande.findByPk(commandId);
+        console.log(command)
+
+        if (!command) {
+            return res.status(404).json({ message: 'Command not found' });
+        }
+
+        // Find products with received quantity greater than 0 for this command
+        const productsData = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: commandId,
+                receivedquantity: { [Op.gt]: 0 } // Filter products with received quantity > 0
+            },
+            attributes: ['id_produit', 'receivedquantity']
+        });
+
+        // Extract product IDs
+        const productIds = productsData.map(productData => productData.id_produit);
+
+        // Find product details using the extracted product IDs
+        const productsDetails = await Produit.findAll({
+            where: {
+                id: productIds
+            },
+            attributes: ['id', 'name', 'caracteristics', 'price']
+        });
+
+        // Combine product details with received quantities
+        const products = productsData.map(productData => {
+            const productDetail = productsDetails.find(p => p.id === productData.id_produit);
+            return {
+                id: productDetail.id,
+                name: productDetail.name,
+                caracteristics: productDetail.caracteristics,
+                price: productDetail.price,
+                receivedquantity: productData.receivedquantity
+            };
+        });
+
+        res.status(200).json({ products });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch products delivered for command', error: error.message });
+    }
+};
+
+
+
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllProductsOfCommand , getProductsWithQuantityDelivered};
 

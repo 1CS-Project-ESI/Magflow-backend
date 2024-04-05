@@ -93,11 +93,20 @@ const createBonRepection = async (req, res) => {
 const getAllCommands = async(req,res) =>{
     try {
         const commands =await BonCommande.findAll();
-        res.status(200).json({message : 'the list of commands : ' , commands })        
+        res.status(200).json({message : 'The list of commands : ' , commands })        
     } catch (error) {
         res.status(500).json({ message: 'Failed to get commands', error: error.message }); 
     }
-}
+};
+
+const getAllReception = async(req,res) =>{
+    try {
+        const receptions =await BonReception.findAll();
+        res.status(200).json({message : 'The list of receptions: ' , receptions })        
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to get the list of receptions', error: error.message }); 
+    }
+};
 
 
 const getAllProductsOfCommand = async (req, res) => {
@@ -223,6 +232,5 @@ const RemainingProducts = async (req, res) => {
 };
 
 
-export { createBonCommande , createBonRepection, getAllCommands, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts};
-
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts};
 

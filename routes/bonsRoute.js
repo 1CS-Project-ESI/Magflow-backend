@@ -4,6 +4,8 @@ import {validateToken} from "../middlewares/validateTokenHandler.js";
 import { createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts} from "../controllers/bonsController.js";
 
 const router = express.Router();
+import cors from "cors";
+router.use(cors());
 
 
 router.post('/create/:id_agentServiceAchat',validateToken,createBonCommande);

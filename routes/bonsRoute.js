@@ -11,7 +11,7 @@ router.post('/create-bon-reception/:id_magasinier',validateToken, createBonRepec
 router.get('/allcommands',validateToken, getAllCommands);
 router.get('/commandproducts/:command_id',validateToken,getAllProductsOfCommand);
 router.get('/command/received/:commandId',validateToken,getProductsWithQuantityDelivered);
-router.get('/remaining-products/:ReceptionId',validateToken, RemainingProducts)
+router.get('/remaining-products/:CommandId', RemainingProducts)
 
 
 export default router;

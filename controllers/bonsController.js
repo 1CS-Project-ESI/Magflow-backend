@@ -190,11 +190,11 @@ const getProductsWithQuantityDelivered = async (req, res) => {
 
 const RemainingProducts = async (req, res) => {
     try {
-        const ReceptionId = req.params.ReceptionId;
+        const CommandId = req.params.CommandId;
 
         const remainingProducts = await ProduitsDelivres.findAll({
             where: {
-                id_bonreception: ReceptionId,
+                id_boncommande: CommandId,
                 receivedquantity: {
                     [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
                 }

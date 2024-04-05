@@ -1,6 +1,7 @@
 import { BonCommande , BonReception, ProduitsDelivres } from "../models/bonsModel.js";
 import { Article , Produit } from "../models/productsModel.js";
-import { Sequelize } from 'sequelize';
+
+import { Op, Sequelize } from 'sequelize';
 
 
 const createBonCommande = async (req, res) => {
@@ -145,13 +146,64 @@ const getAllProductsOfCommand = async (req, res) => {
     }
 };
 
+
+const getProductsWithQuantityDelivered = async (req, res) => {
+    try {
+        const { commandId } = req.params;
+      
+        const command = await BonCommande.findByPk(commandId);
+        console.log(command)
+
+        if (!command) {
+            return res.status(404).json({ message: 'Command not found' });
+        }
+
+        // Find products with received quantity greater than 0 for this command
+        const productsData = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: commandId,
+                receivedquantity: { [Op.gt]: 0 } // Filter products with received quantity > 0
+            },
+            attributes: ['id_produit', 'receivedquantity']
+        });
+
+        // Extract product IDs
+        const productIds = productsData.map(productData => productData.id_produit);
+
+
+        const productsDetails = await Produit.findAll({
+            where: {
+                id: productIds
+            },
+            attributes: ['id', 'name', 'caracteristics', 'price']
+        });
+
+        // Combine product details with received quantities
+        const products = productsData.map(productData => {
+            const productDetail = productsDetails.find(p => p.id === productData.id_produit);
+            return {
+                id: productDetail.id,
+                name: productDetail.name,
+                caracteristics: productDetail.caracteristics,
+                price: productDetail.price,
+                receivedquantity: productData.receivedquantity
+            };
+        });
+
+        res.status(200).json({ products });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch products delivered for command', error: error.message });
+    }
+};
+
+
 const RemainingProducts = async (req, res) => {
     try {
-        const ReceptionId = req.params.ReceptionId;
+        const CommandId = req.params.CommandId;
 
         const remainingProducts = await ProduitsDelivres.findAll({
             where: {
-                id_bonreception: ReceptionId,
+                id_boncommande: CommandId,
                 receivedquantity: {
                     [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
                 }
@@ -179,5 +231,6 @@ const RemainingProducts = async (req, res) => {
     }
 };
 
-export { createBonCommande , createBonRepection,getAllReception, getAllCommands, getAllProductsOfCommand, RemainingProducts};
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts};
 

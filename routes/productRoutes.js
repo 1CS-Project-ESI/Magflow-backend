@@ -4,19 +4,19 @@ import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllch
 
 const router = express.Router();
 
-router.post('/chapter/create/:id',addChapter);
-router.post('/article/create/:chapterId',addArticle);
-router.post('/product/create/:articleId',addProduct);
-router.get('/chapter/all',getAllchapters);
-router.get('/article/all',getAllArticles);
-router.get('/product/all',getAllProducts);
-router.get('/chapter/articles/:chapterId',getChapterArticles);
-router.get('/article/products/:articleId',getArticleProducts);
-router.delete('/product/delete/:productId' ,deleteProduct);
-router.delete('/article/delete/:articleId' ,deleteArticleIfEmpty);
-router.delete('/chapter/delete/:chapterId' ,deleteChapterIfEmpty)
-router.put('/chapter/update/:id',updateChapitre)
-router.put('/article/update/:id',updateArticle)
-router.put('/product/update/:id',updateProduct)
+router.post('/chapter/create/:id',validateToken, addChapter);
+router.post('/article/create/:chapterId',validateToken,addArticle);
+router.post('/product/create/:articleId',validateToken,addProduct);
+router.get('/chapter/all',validateToken, getAllchapters);
+router.get('/article/all',validateToken, getAllArticles);
+router.get('/product/all',validateToken, getAllProducts);
+router.get('/chapter/articles/:chapterId',validateToken, getChapterArticles);
+router.get('/article/products/:articleId',validateToken, getArticleProducts);
+router.delete('/product/delete/:productId' ,validateToken, deleteProduct);
+router.delete('/article/delete/:articleId' ,validateToken, deleteArticleIfEmpty);
+router.delete('/chapter/delete/:chapterId' ,validateToken, deleteChapterIfEmpty)
+router.put('/chapter/update/:id',validateToken, updateChapitre)
+router.put('/article/update/:id',validateToken, updateArticle)
+router.put('/product/update/:id',validateToken, updateProduct)
 
 export default router;

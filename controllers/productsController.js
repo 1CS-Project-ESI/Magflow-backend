@@ -3,13 +3,39 @@ import { Chapitre,Article ,Produit  } from "../models/productsModel.js";
 
 const addChapter = async(req,res) => {
     const {id} = req.params;
-    const {name,description} = req.body;
+    const {name,description,code} = req.body;
 try{
-    const chapter = await Chapitre.create({name,description,id_agentserviceachat:id});
+    const chapter = await Chapitre.create({name,description,id_agentserviceachat:id,code});
     return res.status(200).json(chapter) ;
 } catch (error) {
     res.status(500).json({message : "failed to add chapter " ,error : error.message})
 }
+};
+
+const updateChapitre = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description,code} = req.body;
+
+        // Find the chapitre to update by its ID
+        const chapitre = await Chapitre.findByPk(id);
+        console.log(chapitre);
+
+        if (!chapitre) {
+            return res.status(404).json({ message: 'Chapitre not found' });
+        }
+
+        // Update the chapitre with new data
+        await chapitre.update({
+            name: name || chapitre.name,
+            description: description || chapitre.description,
+            code: code || chapitre.code
+        });
+
+        res.status(200).json({ message: 'Chapitre updated successfully', chapitre });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update Chapitre', error: error.message });
+    }
 };
 
 const addArticle = async(req,res)=> {
@@ -25,6 +51,32 @@ const addArticle = async(req,res)=> {
     }
 };
 
+const updateArticle = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, tva } = req.body;
+
+        // Find the article to update by its ID
+        const article = await Article.findByPk(id);
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        // Update the article with new data
+        await article.update({
+            name: name || article.name, // Keep the existing name if not provided
+            description: description || article.description, // Keep the existing description if not provided
+            tva: tva || article.tva // Keep the existing tva if not provided
+        });
+
+        res.status(200).json({ message: 'Article updated successfully', article });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update Article', error: error.message });
+    }
+};
+
+
 const addProduct = async(req,res)=> {
     try {
         const {articleId} = req.params;
@@ -35,6 +87,32 @@ const addProduct = async(req,res)=> {
         res.status(200).json(product)
     } catch (error) {
         res.status(500).json({message : 'failed to add product' , error : error.message})
+    }
+};
+
+
+const updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, price, caracteristics } = req.body;
+
+        // Find the product to update by its ID
+        const product = await Produit.findByPk(id);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Update the product with new data
+        await product.update({
+            name: name || product.name, // Keep the existing name if not provided
+            price: price || product.price, // Keep the existing price if not provided
+            caracteristics: caracteristics || product.caracteristics // Keep the existing characteristics if not provided
+        });
+
+        res.status(200).json({ message: 'Product updated successfully', product });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update Product', error: error.message });
     }
 };
 
@@ -177,4 +255,4 @@ const deleteChapterIfEmpty = async (req, res) => {
 
 
 
-export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty}
+export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,updateProduct}

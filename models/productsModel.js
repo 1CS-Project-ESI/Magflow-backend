@@ -15,6 +15,11 @@ const Chapitre = sequelize.define('chapitre', {
       type: DataTypes.STRING(255),
       allowNull: false
     },
+    code: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      unique:true
+    },
     id_agentserviceachat: {
       type: DataTypes.INTEGER,
       allowNull: true,

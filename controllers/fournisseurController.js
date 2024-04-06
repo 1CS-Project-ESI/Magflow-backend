@@ -83,5 +83,24 @@ const updateFournisseurByEmail = async (req, res) => {
     }
   };
 
+  const getFournisseurById = async (req, res) => {
+    try {
+        const { fournisseurId } = req.params;
 
-export { createFournisseur, getAllFournisseurs, updateFournisseurByEmail, deleteFournisseurByEmail };
+        // Find the supplier by ID
+        const supplier = await Fournisseur.findByPk(fournisseurId);
+
+        // Check if the supplier exists
+        if (!supplier) {
+            return res.status(404).json({ message: 'Supplier not found' });
+        }
+
+        // Return the supplier details
+        res.status(200).json({ supplier });
+    } catch (error) {
+        console.error('Error fetching supplier details:', error);
+        res.status(500).json({ message: 'Failed to fetch supplier details' });
+    }
+};
+
+export { createFournisseur, getAllFournisseurs, updateFournisseurByEmail, deleteFournisseurByEmail , getFournisseurById };

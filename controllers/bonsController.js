@@ -6,11 +6,18 @@ import { Op, Sequelize } from 'sequelize';
 
 const createBonCommande = async (req, res) => {
     try {
-        const {id_agentServiceAchat}  = req.params;
-        const {  number, orderdate, deliverydate, orderspecifications, status } = req.body;
-        
+        const { id_agentServiceAchat } = req.params;
+        const { number, orderdate, deliverydate, orderspecifications, status, productDetails } = req.body;
+
+        let total_ht = 0;
+        let total_ttc = 0;
+        let totalPriceOfWholeOrder = 0;
+
+        let productsWithOrderedQuantity = [];
+
+
         const boncommande = await BonCommande.create({
-            id_agentserviceachat:id_agentServiceAchat,
+            id_agentserviceachat: id_agentServiceAchat,
             number,
             orderdate,
             deliverydate,
@@ -18,42 +25,57 @@ const createBonCommande = async (req, res) => {
             status
         });
 
-        // Receive product IDs and quantities from frontend
-        let total_ht = 0;
-        let total_ttc = 0;
 
-        const {productDetails } = req.body
-        // Iterate over product details
         for (const productDetail of productDetails) {
             const { productId, orderedQuantity } = productDetail;
 
             const produit = await Produit.findByPk(productId);
 
+            if (!produit) {
+                return res.status(404).json({ message: `Product with ID ${productId} not found` });
+            }
+
             total_ht += produit.price * orderedQuantity;
 
-            // Calculate total_ttc (assuming tva is stored in Article)
             const article = await Article.findByPk(produit.article_id);
             const tva = article.tva;
             total_ttc += (produit.price * (1 + tva / 100)) * orderedQuantity;
 
+            const totalPriceOfProduct = produit.price * orderedQuantity;
+            totalPriceOfWholeOrder += totalPriceOfProduct;
+
+            productsWithOrderedQuantity.push({
+                productId: produit.id,
+                productName: produit.name,
+                price: produit.price,
+                orderedQuantity: orderedQuantity,
+                totalPriceOfProduct: totalPriceOfProduct
+            });
+
             await ProduitsDelivres.create({
                 id_produit: productId,
                 id_boncommande: boncommande.id,
-                orderedquantity : orderedQuantity
-            })
-
-            await boncommande.update({
-                total_ht,
-                tva: total_ttc - total_ht,
-                total_ttc
-            });        
+                orderedquantity: orderedQuantity
+            });
         }
 
-        res.status(200).json({ message: 'BonCommande created successfully', boncommande });
+        await boncommande.update({
+            total_ht,
+            tva: total_ttc - total_ht,
+            total_ttc: totalPriceOfWholeOrder
+        });
+
+        res.status(200).json({message: 'BonCommande created successfully',boncommande,productsWithOrderedQuantity
+        });
     } catch (error) {
+        // Handle any errors that occur during the process
+        console.error('Failed to create BonCommande:', error);
         res.status(500).json({ message: 'Failed to create BonCommande', error: error.message });
     }
 };
+
+
+
 
 
 const createBonRepection = async (req, res) => {
@@ -148,6 +170,40 @@ const getAllProductsOfCommand = async (req, res) => {
 };
 
 
+const RemainingProducts = async (req, res) => {
+    try {
+        const CommandId = req.params.CommandId;
+
+        const remainingProducts = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: CommandId,
+                receivedquantity: {
+                    [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
+                }
+            },
+            attributes: ['id_produit', 'orderedquantity', 'receivedquantity'],
+            include: [{ model: Produit, as: 'produit' }] // Include Produit model with alias 'produit'
+        });
+
+
+        const remainingProductsInfo = remainingProducts.map(product => {
+            const remainingQuantity = product.orderedquantity - product.receivedquantity;
+            return {
+                productId: product.id_produit,
+                productName: product.produit.name, // Access name through alias 'produit'
+                orderedQuantity: product.orderedquantity,
+                receivedQuantity: product.receivedquantity,
+                remainingQuantity: remainingQuantity
+            };
+        });
+
+        res.status(200).json({ remainingProducts: remainingProductsInfo });
+    } catch (error) {
+        console.error('Error fetching remaining products:', error);
+        res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
+    }
+};
+
 const getProductsWithQuantityDelivered = async (req, res) => {
     try {
         const { commandId } = req.params;
@@ -198,41 +254,6 @@ const getProductsWithQuantityDelivered = async (req, res) => {
 };
 
 
-const RemainingProducts = async (req, res) => {
-    try {
-        const CommandId = req.params.CommandId;
-
-        const remainingProducts = await ProduitsDelivres.findAll({
-            where: {
-                id_boncommande: CommandId,
-                receivedquantity: {
-                    [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
-                }
-            },
-            attributes: ['id_produit', 'orderedquantity', 'receivedquantity'],
-            include: [{ model: Produit, as: 'produit' }] // Include Produit model with alias 'produit'
-        });
-
-
-        const remainingProductsInfo = remainingProducts.map(product => {
-            const remainingQuantity = product.orderedquantity - product.receivedquantity;
-            return {
-                productId: product.id_produit,
-                productName: product.produit.name, // Access name through alias 'produit'
-                orderedQuantity: product.orderedquantity,
-                receivedQuantity: product.receivedquantity,
-                remainingQuantity: remainingQuantity
-            };
-        });
-
-        res.status(200).json({ remainingProducts: remainingProductsInfo });
-    } catch (error) {
-        console.error('Error fetching remaining products:', error);
-        res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
-    }
-};
-
-
 const getAllProductsOfCommandWithNumber = async (req, res) => {
     try {
         const { number } = req.params;
@@ -267,8 +288,53 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
     }
 };
 
+const getCommandDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the command by its number
+        const command = await BonCommande.findOne({
+            where: { id: id }
+        });
+
+        if (!command) {
+            return res.status(404).json({ message: 'Command not found' });
+        }
+
+        // Find the associated products for the command
+        // const products = await ProduitsDelivres.findAll({
+        //     where: { id_boncommande: command.id }
+        // });
+        const productsData = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: command.id
+            },
+            attributes: ['id_produit', 'orderedquantity'] // Only fetch necessary attributes
+        });
+
+        // Get details of each product using separate queries
+        const products = [];
+        for (const productData of productsData) {
+            const { id_produit, orderedquantity } = productData;
+            const product = await Produit.findByPk(id_produit, {
+                attributes: ['id', 'name', 'caracteristics', 'price'] // Fetch product details
+            });
+            if (product) {
+                products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
+            }
+        }
+
+        // Optionally, you can fetch additional related data here
+
+        res.status(200).json({ command, products });
+    } catch (error) {
+        console.error('Error fetching command details:', error);
+        res.status(500).json({ message: 'Failed to fetch command details' });
+    }
+};
 
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber};
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails};
 

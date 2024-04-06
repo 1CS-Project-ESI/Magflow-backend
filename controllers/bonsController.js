@@ -169,6 +169,40 @@ const getAllProductsOfCommand = async (req, res) => {
 };
 
 
+const RemainingProducts = async (req, res) => {
+    try {
+        const CommandId = req.params.CommandId;
+
+        const remainingProducts = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: CommandId,
+                receivedquantity: {
+                    [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
+                }
+            },
+            attributes: ['id_produit', 'orderedquantity', 'receivedquantity'],
+            include: [{ model: Produit, as: 'produit' }] // Include Produit model with alias 'produit'
+        });
+
+
+        const remainingProductsInfo = remainingProducts.map(product => {
+            const remainingQuantity = product.orderedquantity - product.receivedquantity;
+            return {
+                productId: product.id_produit,
+                productName: product.produit.name, // Access name through alias 'produit'
+                orderedQuantity: product.orderedquantity,
+                receivedQuantity: product.receivedquantity,
+                remainingQuantity: remainingQuantity
+            };
+        });
+
+        res.status(200).json({ remainingProducts: remainingProductsInfo });
+    } catch (error) {
+        console.error('Error fetching remaining products:', error);
+        res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
+    }
+};
+
 const getProductsWithQuantityDelivered = async (req, res) => {
     try {
         const { commandId } = req.params;
@@ -215,41 +249,6 @@ const getProductsWithQuantityDelivered = async (req, res) => {
         res.status(200).json({ products });
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch products delivered for command', error: error.message });
-    }
-};
-
-
-const RemainingProducts = async (req, res) => {
-    try {
-        const commandId = req.params.commandId;
-
-        const remainingProducts = await ProduitsDelivres.findAll({
-            where: {
-                id_boncommande: commandId,
-                receivedquantity: {
-                    [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
-                }
-            },
-            attributes: ['id_produit', 'orderedquantity', 'receivedquantity'],
-            include: [{ model: Produit, as: 'produit' }] // Include Produit model with alias 'produit'
-        });
-
-
-        const remainingProductsInfo = remainingProducts.map(product => {
-            const remainingQuantity = product.orderedquantity - product.receivedquantity;
-            return {
-                productId: product.id_produit,
-                productName: product.produit.name, // Access name through alias 'produit'
-                orderedQuantity: product.orderedquantity,
-                receivedQuantity: product.receivedquantity,
-                remainingQuantity: remainingQuantity
-            };
-        });
-
-        res.status(200).json({ remainingProducts: remainingProductsInfo });
-    } catch (error) {
-        console.error('Error fetching remaining products:', error);
-        res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
     }
 };
 

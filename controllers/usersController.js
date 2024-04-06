@@ -233,6 +233,28 @@ const forgotPassword = asyncHandler(async (req, res) => {
         res.json(req.user);
     });
 
+    const getUserInfo = async (req, res) => {
+        try {
+            // Assuming you have stored user information in the session or token
+            const userId = req.user.id; // Assuming you have the user's ID in the request
+    
+            // Fetch the user's information from the database
+            const user = await User.findByPk(userId);
+    
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            // Return the user's information
+            res.status(200).json({ user });
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to fetch user information', error: error.message });
+        }
+    };
+    
+
+    
+
 
     
     const deactivateAccount =asyncHandler( async (req, res) => {
@@ -280,7 +302,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
         
 
 
- export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount, logoutUser, activateAccount};
+ export { loginUser , createUser, forgotPassword, resetPassword , currentUser , deactivateAccount, logoutUser, activateAccount,getUserInfo};
 
 
  

@@ -253,6 +253,62 @@ const deleteChapterIfEmpty = async (req, res) => {
     }
 };
 
+const getChapterInfo = async (req, res) => {
+    try {
+        const { chapterId } = req.params;
+
+        // Fetch the chapter information from the database
+        const chapter = await Chapitre.findByPk(chapterId);
+
+        if (!chapter) {
+            return res.status(404).json({ message: 'Chapter not found' });
+        }
+
+        // Return the chapter's information
+        res.status(200).json({ chapter });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch chapter information', error: error.message });
+    }
+};
+
+const getArticleInfo = async (req, res) => {
+    try {
+        const { articleId } = req.params;
+
+        // Fetch the chapter information from the database
+        const article = await Article.findByPk(articleId);
+
+        if (!article) {
+            return res.status(404).json({ message: 'article not found' });
+        }
+
+        // Return the chapter's information
+        res.status(200).json({ article });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch article information', error: error.message });
+    }
+};
 
 
-export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,updateProduct}
+const getProductInfo = async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        // Fetch the chapter information from the database
+        const product = await Produit.findByPk(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: 'product not found' });
+        }
+
+        // Return the chapter's information
+        res.status(200).json({ product });
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch product information', error: error.message });
+    }
+};
+
+
+
+
+export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,updateProduct,getChapterInfo,getArticleInfo,getProductInfo}

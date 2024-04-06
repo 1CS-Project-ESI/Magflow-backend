@@ -91,7 +91,7 @@ const updateUserByEmail = asyncHandler(async (req, res) => {
       user.email = newEmail;
       user.phone = phone;
       user.isactive = isactive;
-      user.id_structure = id_structure
+     
   
       // If password is provided, hash and update it
       if (password) {

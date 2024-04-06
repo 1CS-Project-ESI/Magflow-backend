@@ -9,14 +9,15 @@ import cors from "cors";
 router.use(cors());
 
 
-router.post('/create/:id_agentServiceAchat',validateToken,createBonCommande);
-router.post('/create-bon-reception/:id_magasinier', validateToken,createBonRepection);
-router.get('/allcommands',validateToken, getAllCommands);
+router.post('/create/:id_agentServiceAchat',createBonCommande);
+router.post('/create-bon-reception/:id_magasinier', createBonRepection);
+router.get('/allcommands', getAllCommands); //link done 
 router.get('/allreceptions',validateToken,getAllReception);
-router.get('/commandproducts/:command_id',validateToken,getAllProductsOfCommand);
-router.get('/command/received/:commandId',validateToken,getProductsWithQuantityDelivered);
-router.get('/remaining-products/:CommandId', validateToken, RemainingProducts);
-router.get('/getcommandproductswithnumber',validateToken,getAllProductsOfCommandWithNumber)
+router.get('/commandproducts/:command_id',getAllProductsOfCommand); // link done 
+router.get('/command/received/:commandId',getProductsWithQuantityDelivered);
+router.get('/remaining-products/:CommandId', RemainingProducts)
+router.get('/getcommandproductswithnumber',getAllProductsOfCommandWithNumber)
+
 
 
 export default router;

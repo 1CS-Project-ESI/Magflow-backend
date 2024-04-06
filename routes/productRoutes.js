@@ -3,6 +3,8 @@ import {validateToken} from "../middlewares/validateTokenHandler.js";
 import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles ,getArticleProducts, deleteProduct, deleteArticleIfEmpty, deleteChapterIfEmpty,updateChapitre, updateArticle, updateProduct, getChapterInfo, getArticleInfo, getProductInfo } from "../controllers/productsController.js";
 
 const router = express.Router();
+import cors from "cors";
+router.use(cors());
 
 router.post('/chapter/create/:id',validateToken, addChapter);
 router.post('/article/create/:chapterId',validateToken,addArticle);

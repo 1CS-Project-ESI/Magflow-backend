@@ -1,6 +1,6 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
-import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles ,getArticleProducts, deleteProduct, deleteArticleIfEmpty, deleteChapterIfEmpty,updateChapitre, updateArticle, updateProduct } from "../controllers/productsController.js";
+import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles ,getArticleProducts, deleteProduct, deleteArticleIfEmpty, deleteChapterIfEmpty,updateChapitre, updateArticle, updateProduct, getChapterInfo, getArticleInfo, getProductInfo } from "../controllers/productsController.js";
 
 const router = express.Router();
 
@@ -14,9 +14,12 @@ router.get('/chapter/articles/:chapterId',validateToken, getChapterArticles);
 router.get('/article/products/:articleId',validateToken, getArticleProducts);
 router.delete('/product/delete/:productId' ,validateToken, deleteProduct);
 router.delete('/article/delete/:articleId' ,validateToken, deleteArticleIfEmpty);
-router.delete('/chapter/delete/:chapterId' ,validateToken, deleteChapterIfEmpty)
-router.put('/chapter/update/:id',validateToken, updateChapitre)
-router.put('/article/update/:id',validateToken, updateArticle)
-router.put('/product/update/:id',validateToken, updateProduct)
+router.delete('/chapter/delete/:chapterId' ,validateToken, deleteChapterIfEmpty);
+router.put('/chapter/update/:id',validateToken, updateChapitre);
+router.put('/article/update/:id',validateToken, updateArticle);
+router.put('/product/update/:id',validateToken, updateProduct);
+router.get('/chapter/infos/:chapterId',validateToken,getChapterInfo);
+router.get('/article/infos/:articleId',validateToken,getArticleInfo);
+router.get('/product/infos/:productId',validateToken,getProductInfo);
 
 export default router;

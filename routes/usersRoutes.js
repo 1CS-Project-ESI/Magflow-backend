@@ -1,6 +1,6 @@
 import express from "express";
 import {deleteUserByemail, getAllUsers, updateUserByEmail} from "../controllers/userRudController.js"
-import { createUser, currentUser , deactivateAccount , activateAccount} from "../controllers/usersController.js";
+import { createUser, currentUser , deactivateAccount , activateAccount, getUserInfo} from "../controllers/usersController.js";
 import modifyParams from "../controllers/paramController.js";
 import { validateToken } from "../middlewares/validateTokenHandler.js";
 import { isAdmin } from "../middlewares/adminChecker.js";
@@ -24,7 +24,9 @@ router.post("/activateaccount"  ,validateToken, activateAccount );
 router.get("/currentuser" ,currentUser)
 
 router.post('/createbackups',validateToken, createBackup); 
-router.get("/getAllBackups",validateToken, getAllBackups) 
+router.get("/getAllBackups",validateToken, getAllBackups);
+
+router.get('/info',validateToken,getUserInfo)
 
 
 

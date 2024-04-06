@@ -9,7 +9,7 @@ router.use(cors());
 
 
 router.post('/create/:id_agentServiceAchat',validateToken,createBonCommande);
-router.post('/create-bon-reception/:id_magasinier',validateToken, createBonRepection);
+router.post('/create-bon-reception/:id_magasinier', validateToken,createBonRepection);
 router.get('/allcommands',validateToken, getAllCommands);
 router.get('/allreceptions',validateToken,getAllReception);
 router.get('/commandproducts/:command_id',validateToken,getAllProductsOfCommand);

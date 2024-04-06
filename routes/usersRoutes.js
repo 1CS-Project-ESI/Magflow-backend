@@ -14,17 +14,17 @@ import cors from "cors";
 router.use(cors());
 // Define routes (endpoints)
 
-router.delete("/:email",validateToken, deleteUserByemail); 
-router.get("/AllUsers",validateToken,getAllUsers); 
-router.put("/modifyParams",validateToken,modifyParams);
-router.put("/:email" ,validateToken,updateUserByEmail); 
-router.post("/createuser",validateToken,createUser);  
-router.post("/deactivateaccount" ,validateToken , deactivateAccount ); 
-router.post("/activateaccount"  ,validateToken, activateAccount );
+router.delete("/:email", deleteUserByemail); 
+router.get("/AllUsers",getAllUsers); 
+router.put("/modifyParams",modifyParams);
+router.put("/:email" ,updateUserByEmail); 
+router.post("/createuser",createUser);  
+router.post("/deactivateaccount"  , deactivateAccount ); 
+router.post("/activateaccount"  , activateAccount );
 router.get("/currentuser" ,currentUser)
 
-router.post('/createbackups',validateToken, createBackup); 
-router.get("/getAllBackups",validateToken, getAllBackups) 
+router.post('/createbackups', createBackup); 
+router.get("/getAllBackups", getAllBackups) 
 
 
 

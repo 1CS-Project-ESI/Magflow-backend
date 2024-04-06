@@ -81,16 +81,16 @@ const createBonCommande = async (req, res) => {
 const createBonRepection = async (req, res) => {
     try {
         const { id_magasinier } = req.params;
-        const { number, commandeNumber, deliverydate, products, receivedQuantities } = req.body;
+        const { number, commandId, deliverydate, products, receivedQuantities } = req.body;
         
         const bonReception = await BonReception.create({
             id_magasinier,
             number,
             deliverydate,
         });
-
+        
         // Searching for "bon de commande" based on its number (i need the id)
-        const bonCommande = await BonCommande.findOne({ where: { number: commandeNumber } });
+        const bonCommande = await BonCommande.findOne({ where: { id: commandId } });
         if (!bonCommande) {
             throw new Error('BonCommande not found for the provided commandeNumber');
         }
@@ -98,6 +98,7 @@ const createBonRepection = async (req, res) => {
         for (let i = 0; i < products.length; i++) {
             const productId = products[i];
             const receivedQuantity = receivedQuantities[i];
+            console.log(`this is produnt number ${i}and its questiiti is ${receivedQuantity}`);
             console.log(bonReception.id ,bonCommande.id ,receivedQuantity,productId);
             await ProduitsDelivres.update(
                 { receivedquantity: receivedQuantity, id_bonreception: bonReception.id },
@@ -255,7 +256,7 @@ const getProductsWithQuantityDelivered = async (req, res) => {
 
 const getAllProductsOfCommandWithNumber = async (req, res) => {
     try {
-        const { number } = req.body;
+        const { number } = req.params;
 
         // Find the command by its number to get the command ID
         const command = await BonCommande.findOne({

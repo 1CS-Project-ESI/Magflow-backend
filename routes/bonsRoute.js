@@ -9,10 +9,10 @@ import cors from "cors";
 router.use(cors());
 
 
-router.post('/create/:id_agentServiceAchat',createBonCommande);
+router.post('/create/:id_agentServiceAchat',createBonCommande);  // link done 
 router.post('/create-bon-reception/:id_magasinier', createBonRepection);
 router.get('/allcommands', getAllCommands); //link done 
-router.get('/allreceptions',getAllReception);
+router.get('/allreceptions',getAllReception); //link done 
 router.get('/commandproducts/:command_id',getAllProductsOfCommand); // link done 
 router.get('/command/received/:commandId',getProductsWithQuantityDelivered);
 router.get('/remaining-products/:CommandId', RemainingProducts);

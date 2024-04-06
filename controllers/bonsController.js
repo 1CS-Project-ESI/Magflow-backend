@@ -199,11 +199,11 @@ const getProductsWithQuantityDelivered = async (req, res) => {
 
 const RemainingProducts = async (req, res) => {
     try {
-        const CommandId = req.params.CommandId;
+        const commandId = req.params.commandId;
 
         const remainingProducts = await ProduitsDelivres.findAll({
             where: {
-                id_boncommande: CommandId,
+                id_boncommande: commandId,
                 receivedquantity: {
                     [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
                 }
@@ -266,8 +266,35 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
     }
 };
 
+const getCommandDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the command by its number
+        const command = await BonCommande.findOne({
+            where: { id: id }
+        });
+
+        if (!command) {
+            return res.status(404).json({ message: 'Command not found' });
+        }
+
+        // Find the associated products for the command
+        const products = await ProduitsDelivres.findAll({
+            where: { id_boncommande: command.id }
+        });
+
+        // Optionally, you can fetch additional related data here
+
+        res.status(200).json({ command, products });
+    } catch (error) {
+        console.error('Error fetching command details:', error);
+        res.status(500).json({ message: 'Failed to fetch command details' });
+    }
+};
 
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber};
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails};
 

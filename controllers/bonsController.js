@@ -6,11 +6,18 @@ import { Op, Sequelize } from 'sequelize';
 
 const createBonCommande = async (req, res) => {
     try {
-        const {id_agentServiceAchat}  = req.params;
-        const {  number, orderdate, deliverydate, orderspecifications, status } = req.body;
-        
+        const { id_agentServiceAchat } = req.params;
+        const { number, orderdate, deliverydate, orderspecifications, status, productDetails } = req.body;
+
+        let total_ht = 0;
+        let total_ttc = 0;
+        let totalPriceOfWholeOrder = 0;
+
+        let productsWithOrderedQuantity = [];
+
+
         const boncommande = await BonCommande.create({
-            id_agentserviceachat:id_agentServiceAchat,
+            id_agentserviceachat: id_agentServiceAchat,
             number,
             orderdate,
             deliverydate,
@@ -18,42 +25,57 @@ const createBonCommande = async (req, res) => {
             status
         });
 
-        // Receive product IDs and quantities from frontend
-        let total_ht = 0;
-        let total_ttc = 0;
 
-        const {productDetails } = req.body
-        // Iterate over product details
         for (const productDetail of productDetails) {
             const { productId, orderedQuantity } = productDetail;
 
             const produit = await Produit.findByPk(productId);
 
+            if (!produit) {
+                return res.status(404).json({ message: `Product with ID ${productId} not found` });
+            }
+
             total_ht += produit.price * orderedQuantity;
 
-            // Calculate total_ttc (assuming tva is stored in Article)
             const article = await Article.findByPk(produit.article_id);
             const tva = article.tva;
             total_ttc += (produit.price * (1 + tva / 100)) * orderedQuantity;
 
+            const totalPriceOfProduct = produit.price * orderedQuantity;
+            totalPriceOfWholeOrder += totalPriceOfProduct;
+
+            productsWithOrderedQuantity.push({
+                productId: produit.id,
+                productName: produit.name,
+                price: produit.price,
+                orderedQuantity: orderedQuantity,
+                totalPriceOfProduct: totalPriceOfProduct
+            });
+
             await ProduitsDelivres.create({
                 id_produit: productId,
                 id_boncommande: boncommande.id,
-                orderedquantity : orderedQuantity
-            })
-
-            await boncommande.update({
-                total_ht,
-                tva: total_ttc - total_ht,
-                total_ttc
-            });        
+                orderedquantity: orderedQuantity
+            });
         }
 
-        res.status(200).json({ message: 'BonCommande created successfully', boncommande });
+        await boncommande.update({
+            total_ht,
+            tva: total_ttc - total_ht,
+            total_ttc: totalPriceOfWholeOrder
+        });
+
+        res.status(200).json({message: 'BonCommande created successfully',boncommande,productsWithOrderedQuantity
+        });
     } catch (error) {
+        // Handle any errors that occur during the process
+        console.error('Failed to create BonCommande:', error);
         res.status(500).json({ message: 'Failed to create BonCommande', error: error.message });
     }
 };
+
+
+
 
 
 const createBonRepection = async (req, res) => {

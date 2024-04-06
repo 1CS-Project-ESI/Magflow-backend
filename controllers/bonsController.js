@@ -301,9 +301,27 @@ const getCommandDetails = async (req, res) => {
         }
 
         // Find the associated products for the command
-        const products = await ProduitsDelivres.findAll({
-            where: { id_boncommande: command.id }
+        // const products = await ProduitsDelivres.findAll({
+        //     where: { id_boncommande: command.id }
+        // });
+        const productsData = await ProduitsDelivres.findAll({
+            where: {
+                id_boncommande: command.id
+            },
+            attributes: ['id_produit', 'orderedquantity'] // Only fetch necessary attributes
         });
+
+        // Get details of each product using separate queries
+        const products = [];
+        for (const productData of productsData) {
+            const { id_produit, orderedquantity } = productData;
+            const product = await Produit.findByPk(id_produit, {
+                attributes: ['id', 'name', 'caracteristics', 'price'] // Fetch product details
+            });
+            if (product) {
+                products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
+            }
+        }
 
         // Optionally, you can fetch additional related data here
 

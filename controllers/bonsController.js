@@ -232,5 +232,42 @@ const RemainingProducts = async (req, res) => {
 };
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts};
+const getAllProductsOfCommandWithNumber = async (req, res) => {
+    try {
+        const { number } = req.body;
+
+        // Find the command by its number to get the command ID
+        const command = await BonCommande.findOne({
+            where: { number: number }
+        });
+
+        if (!command) {
+            return res.status(404).json({ message: 'Command not found' });
+        }
+
+        // Find all product IDs associated with the command
+        const products = await ProduitsDelivres.findAll({
+            where: { id_boncommande: command.id },
+            attributes: ['id_produit'] // Only retrieve the product IDs
+        });
+
+        // Extract product IDs
+        const productIds = products.map(product => product.id_produit);
+
+        // Find all products associated with the product IDs
+        const productsData = await Produit.findAll({
+            where: { id: productIds }
+        });
+
+        res.status(200).json({ products: productsData });
+    } catch (error) {
+        console.error('Error fetching products of command:', error);
+        res.status(500).json({ message: 'Failed to fetch products of command' });
+    }
+};
+
+
+
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber};
 

@@ -42,12 +42,19 @@ const loginUser = asyncHandler(async (req, res) => {
             expiresIn: 86400, // 24 hours
         });
 
+        // code of returning the role name of the user 
+        const userRole = await UsersRoles.findOne({ where: { user_id: user.id } });
+        const roleModelObj = await Role.findOne({ where: { id: userRole.role_id } });
+        const roleName = roleModelObj.name; 
+
+        console.log("role name of user id 129 is ",roleName);
         return res.status(200).send({
             id: user.id,
             firstname: user.firstname,
             lastname: user.lastname,
             email: user.email,
-            accessToken: token
+            accessToken: token,
+            role:roleName
         });
     } catch (error) {
         return res.status(500).send({ message: error.message });

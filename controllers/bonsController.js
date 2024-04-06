@@ -83,7 +83,7 @@ const createBonRepection = async (req, res) => {
             );
         }
 
-        res.status(200).json({ message: 'BonReception created successfully', bonReception });
+        res.status(200).json({ message: 'BonReception created successfully', bonReception, commandId: bonCommande.id });
     } catch (error) {
         res.status(500).json({ message: 'Failed to create BonReception', error: error.message });
     }

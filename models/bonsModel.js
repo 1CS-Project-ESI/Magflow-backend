@@ -71,6 +71,7 @@ const BonReception = sequelize.define('BonReception', {
     number: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        unique: true
     },
     deliverydate: {
         type: DataTypes.DATE,

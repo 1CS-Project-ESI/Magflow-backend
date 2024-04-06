@@ -8,10 +8,10 @@ import cors from "cors";
 router.use(cors());
 
 
-router.post('/create', validateToken, createFournisseur);
-router.get('/allFournisseurs',validateToken, getAllFournisseurs);
-router.put('/update/:email', validateToken, updateFournisseurByEmail);
-router.delete('/delete/:email', validateToken, deleteFournisseurByEmail)
+router.post('/create', createFournisseur);
+router.get('/allFournisseurs', getAllFournisseurs);
+router.put('/update/:email', updateFournisseurByEmail);
+router.delete('/delete/:email', deleteFournisseurByEmail)
 router.get('/:fournisseurId', getFournisseurById);
 
 export default router;

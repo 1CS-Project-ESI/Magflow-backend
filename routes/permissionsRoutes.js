@@ -7,7 +7,7 @@ const router = express.Router();
 import cors from "cors";
 router.use(cors());
 
-router.get('/getAllPermissions',validateToken,getAllPermissions);
-router.post('/update/:id',validateToken,updatePermissionRoles); 
+router.get('/getAllPermissions',getAllPermissions);
+router.post('/update/:id',updatePermissionRoles); 
 
 export default router;

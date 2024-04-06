@@ -4,6 +4,8 @@ import {createFournisseur, getAllFournisseurs ,updateFournisseurByEmail, deleteF
 
 
 const router = express.Router();
+import cors from "cors";
+router.use(cors());
 
 
 router.post('/create', validateToken, createFournisseur);

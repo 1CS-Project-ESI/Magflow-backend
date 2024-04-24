@@ -1,5 +1,5 @@
 import expressAsyncHandler from "express-async-handler";
-import { Chapitre,Article ,Produit  } from "../models/productsModel.js";
+import { Chapitre,Article ,Produit ,ProduitsArticle } from "../models/productsModel.js";
 
 const addChapter = async(req,res) => {
     const {id} = req.params;
@@ -77,44 +77,48 @@ const updateArticle = async (req, res) => {
 };
 
 
-const addProduct = async(req,res)=> {
+const addProduct = async (req, res) => {
     try {
-        const {articleId} = req.params;
-        const {name,price,caracteristics} = req.body;
+        const { articleId } = req.params;
+        const { name, caracteristics } = req.body;
 
-        const product = await Produit.create({article_id:articleId,name,price,caracteristics})
+        // Create the product
+        const product = await Produit.create({name, caracteristics });
 
-        res.status(200).json(product)
+        // Add an entry in the produitsarticle table
+        await ProduitsArticle.create({ id_produit: product.id, id_article: articleId });
+
+        res.status(200).json(product);
     } catch (error) {
-        res.status(500).json({message : 'failed to add product' , error : error.message})
+        res.status(500).json({ message: 'Failed to add product', error: error.message });
     }
 };
 
 
-const updateProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, price, caracteristics } = req.body;
 
-        // Find the product to update by its ID
-        const product = await Produit.findByPk(id);
+// const updateProduct = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { name, caracteristics } = req.body;
 
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
-        }
+//         // Find the product to update by its ID
+//         const product = await Produit.findByPk(id);
 
-        // Update the product with new data
-        await product.update({
-            name: name || product.name, // Keep the existing name if not provided
-            price: price || product.price, // Keep the existing price if not provided
-            caracteristics: caracteristics || product.caracteristics // Keep the existing characteristics if not provided
-        });
+//         if (!product) {
+//             return res.status(404).json({ message: 'Product not found' });
+//         }
 
-        res.status(200).json({ message: 'Product updated successfully', product });
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to update Product', error: error.message });
-    }
-};
+//         // Update the product with new data
+//         await product.update({
+//             name: name || product.name, // Keep the existing name if not provided
+//             caracteristics: caracteristics || product.caracteristics // Keep the existing caracteristics if not provided
+//         });
+
+//         res.status(200).json({ message: 'Product updated successfully', product });
+//     } catch (error) {
+//         res.status(500).json({ message: 'Failed to update Product', error: error.message });
+//     }
+// };
 
 
 const getAllchapters = async (req, res) => {
@@ -169,14 +173,25 @@ const getAllchapters = async (req, res) => {
 
 const getArticleProducts = async (req, res) => {
     try {
-        const { articleId } = req.params; // Extract chapterId from request parameters
+        const { articleId } = req.params; // Extract articleId from request parameters
 
-        // Find all articles with the specified chapter ID
-        const products = await Produit.findAll({ where: { article_id: articleId } });
+        // Find all product IDs associated with the specified articleId
+        const productIdsData = await ProduitsArticle.findAll({ 
+            where: { id_article: articleId }, 
+            attributes: ['id_produit'] 
+        });
+        
+        // Extract product IDs from the result
+        const productIds = productIdsData.map(data => data.id_produit);
 
-        res.status(200).json(products); // Return the articles
+        // Find all products associated with the retrieved product IDs
+        const products = await Produit.findAll({ 
+            where: { id: productIds } 
+        });
+
+        res.status(200).json(products); // Return the products
     } catch (error) {
-        res.status(500).json({ message: 'Failed to retrieve chapter articles', error: error.message });
+        res.status(500).json({ message: 'Failed to retrieve article products', error: error.message });
     }
 };
 
@@ -191,6 +206,9 @@ const deleteProduct = async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
+        // Remove the product association from produitsarticle table
+        await ProduitsArticle.destroy({ where: { id_produit: productId } });
+
         // Delete the product
         await product.destroy();
 
@@ -199,6 +217,7 @@ const deleteProduct = async (req, res) => {
         res.status(500).json({ message: 'Failed to delete product', error: error.message });
     }
 };
+
 
 const deleteArticleIfEmpty = async (req, res) => {
     try {
@@ -212,7 +231,7 @@ const deleteArticleIfEmpty = async (req, res) => {
         }
 
         // Check if the article has any associated products
-        const productsCount = await Produit.count({ where: { article_id: articleId } });
+        const productsCount = await ProduitsArticle.count({ where: { id_article: articleId } });
 
         if (productsCount > 0) {
             return res.status(400).json({ message: 'Cannot delete article because it contains products' });
@@ -311,4 +330,4 @@ const getProductInfo = async (req, res) => {
 
 
 
-export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,updateProduct,getChapterInfo,getArticleInfo,getProductInfo}
+export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,getChapterInfo,getArticleInfo,getProductInfo}

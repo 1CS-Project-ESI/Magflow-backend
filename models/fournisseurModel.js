@@ -31,45 +31,20 @@ const Fournisseur = sequelize.define('fournisseur', {
     rib: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    id_chapitre: {
+        type: DataTypes.INTEGER,
+        allowNull: true, // or false, depending on your requirements
+        references: {
+            model: 'chapitre', // Name of the referenced table
+            key: 'id' // Primary key in the referenced table
+        }
     }
 }, { 
     tableName: 'fournisseur',
     timestamps: false
 });
 
-const TransactionFournisseur = sequelize.define('TransactionFournisseur', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    id_fournisseur: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'Fournisseur',
-            key: 'id'
-        }
-    },
-    id_boncommande: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'BonCommande',
-            key: 'id'
-        }
-    },
-    id_bonreception: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'BonReception',
-            key: 'id'
-        }
-    }
-}, { 
-    tableName: 'transactionfournisseur',
-    timestamps: false
-});
 
-export {Fournisseur, TransactionFournisseur}
+
+export {Fournisseur}

@@ -16,16 +16,20 @@ const BonCommande = sequelize.define('BonCommande', {
             key: 'user_id'
         }
     },
+    id_fournisseur: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'fournisseur',
+            key: 'id'
+        }
+    },
     number: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        unique : true,
+        unique: true,
     },
     orderdate: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    deliverydate: {
         type: DataTypes.DATE,
         allowNull: false,
     },
@@ -54,7 +58,8 @@ const BonCommande = sequelize.define('BonCommande', {
     timestamps: false,
 });
 
-const BonReception = sequelize.define('BonReception', {
+
+const BonReception = sequelize.define('bonreception', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -82,46 +87,60 @@ const BonReception = sequelize.define('BonReception', {
     timestamps: false,
 });
 
-const ProduitsDelivres = sequelize.define('ProduitDelivres', {
+const ProduitsCommandes = sequelize.define('produitscommandes', {
     id_produit: {
         type: DataTypes.INTEGER,
-        allowNull: false,
         primaryKey: true,
         references: {
-            model: 'Produit',
+            model: 'produit',
             key: 'id'
         }
     },
     id_boncommande: {
         type: DataTypes.INTEGER,
-        allowNull: false,
         primaryKey: true,
         references: {
-            model: 'BonCommande',
-            key: 'id'
-        }
-    },
-    id_bonreception: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-            model: 'BonReception',
+            model: 'boncommande',
             key: 'id'
         }
     },
     orderedquantity: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: false
+    },
+    price: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
+    }
+}, {
+    tableName: 'produitscommandes',
+    timestamps: false
+});
+
+const ProduitsDelivres = sequelize.define('produitsdelivres', {
+    id_produit: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        references: {
+            model: 'produit',
+            key: 'id'
+        }
+    },
+    id_bonreception: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        references: {
+            model: 'bonreception',
+            key: 'id'
+        }
     },
     receivedquantity: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0, 
+        allowNull: false
     }
 }, {
     tableName: 'produitsdelivres',
-    timestamps: false,
-});
+    timestamps: false
+})
 
-ProduitsDelivres.belongsTo(Produit, { foreignKey: 'id_produit', as: 'produit' });
-export {BonReception, BonCommande, ProduitsDelivres}
+export {BonReception, BonCommande, ProduitsCommandes , ProduitsDelivres}

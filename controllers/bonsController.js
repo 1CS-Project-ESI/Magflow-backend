@@ -1,4 +1,4 @@
-import { BonCommande , BonReception, ProduitsDelivres } from "../models/bonsModel.js";
+import { BonCommande , BonReception, ProduitsCommandes } from "../models/bonsModel.js";
 import { Article , Produit } from "../models/productsModel.js";
 
 import { Op, Sequelize } from 'sequelize';

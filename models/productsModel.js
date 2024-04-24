@@ -71,14 +71,7 @@ const Chapitre = sequelize.define('chapitre', {
       primaryKey: true,
       autoIncrement: true
     },
-    article_id: {
-      type: DataTypes.INTEGER, // This is the foreign key attribute
-      allowNull: false,
-      references: {
-        model: 'Article', // This is the target model
-        key: 'id' // This is the target key attribute
-      }
-    },
+  
     name: {
       type: DataTypes.STRING,
       allowNull: false
@@ -87,15 +80,32 @@ const Chapitre = sequelize.define('chapitre', {
       type: DataTypes.STRING,
       allowNull: false
     },
-    
-    price: {
-        type: DataTypes.DECIMAL(10, 2), // Define the price field with appropriate precision and scale
-        allowNull: false,
-      }
   },{
     timestamps : false ,
     tableName : 'produit'
   });
 
 
-  export {Chapitre ,Article, Produit};
+  const ProduitsArticle = sequelize.define('produitsarticle', {
+    id_produit: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        references: {
+            model: 'produit',
+            key: 'id'
+        }
+    },
+    id_article: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        references: {
+            model: 'article',
+            key: 'id'
+        }
+    }
+}, {
+    tableName: 'produitsarticle',
+    timestamps: false
+}); 
+
+  export {Chapitre ,Article, Produit,ProduitsArticle};

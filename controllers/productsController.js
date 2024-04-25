@@ -80,10 +80,10 @@ const updateArticle = async (req, res) => {
 const addProduct = async (req, res) => {
     try {
         const { articleId } = req.params;
-        const { name, caracteristics } = req.body;
+        const { name, caracteristics , quantity } = req.body;
 
         // Create the product
-        const product = await Produit.create({name, caracteristics });
+        const product = await Produit.create({name, caracteristics,quantity });
 
         // Add an entry in the produitsarticle table
         await ProduitsArticle.create({ id_produit: product.id, id_article: articleId });

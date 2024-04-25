@@ -1,80 +1,88 @@
-import { BonCommande , BonReception, ProduitsCommandes } from "../models/bonsModel.js";
-import { Article , Produit } from "../models/productsModel.js";
+import { BonCommande , BonReception, ProduitsCommandes  } from "../models/bonsModel.js";
+import { Article , Produit,ProduitsArticle } from "../models/productsModel.js";
 
 import { Op, Sequelize } from 'sequelize';
 
 
 const createBonCommande = async (req, res) => {
     try {
-        const { id_agentServiceAchat } = req.params;
-        const { number, orderdate, deliverydate, orderspecifications, status, productDetails } = req.body;
+        // Step 1: Get id_agentserviceachat and id_fournisseur from params
+        const { id_agentserviceachat, id_fournisseur } = req.params;
+        
+        // Step 2: Get number, orderdate, status, and product details from body
+        const { number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
 
+        // Step 3: Initialize total_ht, total_ttc, and total_tva to 0
         let total_ht = 0;
+        let tva = 0;
         let total_ttc = 0;
-        let totalPriceOfWholeOrder = 0;
 
-        let productsWithOrderedQuantity = [];
-
-
-        const boncommande = await BonCommande.create({
-            id_agentserviceachat: id_agentServiceAchat,
+        // Create a new instance of BonCommande
+        const newBonCommande = await BonCommande.create({
+            id_agentserviceachat,
+            id_fournisseur,
             number,
             orderdate,
-            deliverydate,
             orderspecifications,
-            status
+            status,
+            total_ttc,
+            total_ht
         });
 
+        // Step 4: Iterate through productsOrdered array and calculate total_ht
+        for (const product of productsOrdered) {
+            total_ht += product.ordered_quantity * product.price;
+        }
 
-        for (const productDetail of productDetails) {
-            const { productId, orderedQuantity } = productDetail;
-
+        // Step 5 & 6: Calculate total_ttc and total_tva
+        for (const product of productsOrdered) {
+            const { productId } = product;
             const produit = await Produit.findByPk(productId);
 
             if (!produit) {
                 return res.status(404).json({ message: `Product with ID ${productId} not found` });
             }
 
-            total_ht += produit.price * orderedQuantity;
-
-            const article = await Article.findByPk(produit.article_id);
-            const tva = article.tva;
-            total_ttc += (produit.price * (1 + tva / 100)) * orderedQuantity;
-
-            const totalPriceOfProduct = produit.price * orderedQuantity;
-            totalPriceOfWholeOrder += totalPriceOfProduct;
-
-            productsWithOrderedQuantity.push({
-                productId: produit.id,
-                productName: produit.name,
-                price: produit.price,
-                orderedQuantity: orderedQuantity,
-                totalPriceOfProduct: totalPriceOfProduct
+            const produitArticle = await ProduitsArticle.findOne({
+                where: { id_produit: productId }
             });
+            
+            if (!produitArticle) {
+                return res.status(404).json({ message: `Article not found for product ID ${productId}` });
+            }
 
-            await ProduitsDelivres.create({
-                id_produit: productId,
-                id_boncommande: boncommande.id,
-                orderedquantity: orderedQuantity
+            // Find article by ID
+            const article = await Article.findByPk(produitArticle.id_article);
+
+            if (!article) {
+                return res.status(404).json({ message: `Article not found for product ID ${productId}` });
+            }
+
+            const tva = article.tva;
+            total_ttc += (product.price * (1 + tva / 100)) * product.ordered_quantity;
+
+            // Step 7: Add a line for each product in the produitscommandes table
+            await ProduitsCommandes.create({
+                id_produit: product.productId,
+                id_boncommande: newBonCommande.id,
+                ordered_quantity: product.ordered_quantity,
+                price: product.price
             });
         }
 
-        await boncommande.update({
+        // Step 8: Update total_ht, tva, and total_ttc in the BonCommande table
+        await newBonCommande.update({
             total_ht,
             tva: total_ttc - total_ht,
-            total_ttc: totalPriceOfWholeOrder
+            total_ttc
         });
 
-        res.status(200).json({message: 'BonCommande created successfully',boncommande,productsWithOrderedQuantity
-        });
+        res.status(200).json({ message: 'BonCommande created successfully', BonCommande: newBonCommande });
     } catch (error) {
-        // Handle any errors that occur during the process
         console.error('Failed to create BonCommande:', error);
         res.status(500).json({ message: 'Failed to create BonCommande', error: error.message });
     }
 };
-
-
 
 
 
@@ -90,8 +98,8 @@ const createBonRepection = async (req, res) => {
         });
         
         // Searching for "bon de commande" based on its number (i need the id)
-        const bonCommande = await BonCommande.findOne({ where: { id: commandId } });
-        if (!bonCommande) {
+        const BonCommande = await BonCommande.findOne({ where: { id: commandId } });
+        if (!BonCommande) {
             throw new Error('BonCommande not found for the provided commandeNumber');
         }
 
@@ -99,14 +107,14 @@ const createBonRepection = async (req, res) => {
             const productId = products[i];
             const receivedQuantity = receivedQuantities[i];
             console.log(`this is produnt number ${i}and its questiiti is ${receivedQuantity}`);
-            console.log(bonReception.id ,bonCommande.id ,receivedQuantity,productId);
+            console.log(bonReception.id ,BonCommande.id ,receivedQuantity,productId);
             await ProduitsDelivres.update(
                 { receivedquantity: receivedQuantity, id_bonreception: bonReception.id },
-                { where: { id_produit: productId, id_boncommande: bonCommande.id } }
+                { where: { id_produit: productId, id_boncommande: BonCommande.id } }
             );
         }
 
-        res.status(200).json({ message: 'BonReception created successfully', bonReception, commandId: bonCommande.id });
+        res.status(200).json({ message: 'BonReception created successfully', bonReception, commandId: BonCommande.id });
     } catch (error) {
         res.status(500).json({ message: 'Failed to create BonReception', error: error.message });
     }
@@ -144,22 +152,22 @@ const getAllProductsOfCommand = async (req, res) => {
         }
 
         // Find all products delivered for this command
-        const productsData = await ProduitsDelivres.findAll({
+        const productsData = await ProduitsCommandes.findAll({
             where: {
                 id_boncommande: command_id
             },
-            attributes: ['id_produit', 'orderedquantity'] // Only fetch necessary attributes
+            attributes: ['id_produit', 'ordered_quantity'] // Only fetch necessary attributes
         });
 
         // Get details of each product using separate queries
         const products = [];
         for (const productData of productsData) {
-            const { id_produit, orderedquantity } = productData;
+            const { id_produit, ordered_quantity } = productData;
             const product = await Produit.findByPk(id_produit, {
-                attributes: ['id', 'name', 'caracteristics', 'price'] // Fetch product details
+                attributes: ['id', 'name', 'caracteristics'] // Fetch product details
             });
             if (product) {
-                products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
+                products.push({ ...product.toJSON(), ordered_quantity }); // Combine product details with ordered quantity
             }
         }
 
@@ -268,7 +276,7 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
         }
 
         // Find all product IDs associated with the command
-        const products = await ProduitsDelivres.findAll({
+        const products = await ProduitsCommandes.findAll({
             where: { id_boncommande: command.id },
             attributes: ['id_produit'] // Only retrieve the product IDs
         });
@@ -305,11 +313,11 @@ const getCommandDetails = async (req, res) => {
         // const products = await ProduitsDelivres.findAll({
         //     where: { id_boncommande: command.id }
         // });
-        const productsData = await ProduitsDelivres.findAll({
+        const productsData = await ProduitsCommandes.findAll({
             where: {
-                id_boncommande: command.id
+                id_boncommande: id
             },
-            attributes: ['id_produit', 'orderedquantity'] // Only fetch necessary attributes
+            attributes: ['id_produit', 'ordered_quantity'] // Only fetch necessary attributes
         });
 
         // Get details of each product using separate queries
@@ -317,7 +325,7 @@ const getCommandDetails = async (req, res) => {
         for (const productData of productsData) {
             const { id_produit, orderedquantity } = productData;
             const product = await Produit.findByPk(id_produit, {
-                attributes: ['id', 'name', 'caracteristics', 'price'] // Fetch product details
+                attributes: ['id', 'name', 'caracteristics'] // Fetch product details
             });
             if (product) {
                 products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity

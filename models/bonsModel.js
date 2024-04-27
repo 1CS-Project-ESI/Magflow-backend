@@ -112,7 +112,7 @@ const ProduitsCommandes = sequelize.define('produitscommandes', {
             key: 'id'
         }
     },
-    orderedquantity: {
+    ordered_quantity: {
         type: DataTypes.INTEGER,
         allowNull: false
     },

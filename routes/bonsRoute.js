@@ -9,14 +9,15 @@ import cors from "cors";
 router.use(cors());
 
 
-router.post('/create/:id_agentServiceAchat',createBonCommande);  // link done 
+
+router.post('/create/:id_agentserviceachat/:id_fournisseur',createBonCommande);  // link done 
 router.post('/create-bon-reception/:id_boncommande', createBonRepection);
 router.get('/allcommands', getAllCommands); //link done 
 router.get('/allreceptions',getAllReception); //link done 
 router.get('/commandproducts/:command_id',getAllProductsOfCommand); // link done 
 router.get('/command/received/:commandId',getProductsWithQuantityDelivered);
 router.get('/remaining-products/:CommandId', RemainingProducts);
-router.get('/getcommandproductswithnumber',getAllProductsOfCommandWithNumber);
+router.get('/getcommandproductswithnumber/:number',getAllProductsOfCommandWithNumber);
 router.get('/command/details/:id',getCommandDetails)
 
 export default router;

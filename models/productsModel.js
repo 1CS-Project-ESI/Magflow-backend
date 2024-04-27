@@ -80,6 +80,10 @@ const Chapitre = sequelize.define('chapitre', {
       type: DataTypes.STRING,
       allowNull: false
     },
+    quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
   },{
     timestamps : false ,
     tableName : 'produit'

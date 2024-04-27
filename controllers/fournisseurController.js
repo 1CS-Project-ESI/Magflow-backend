@@ -1,9 +1,10 @@
 import { Fournisseur } from '../models/fournisseurModel.js'; 
+import { Chapitre } from '../models/productsModel.js';
 
 
 const createFournisseur = async (req, res) => {
     try {
-
+        const {id_chapitre} = req.params
         const { name, email, phone, rc, nif, rib } = req.body;
         
         const existingFournisseur = await Fournisseur.findOne({ where: { email } });
@@ -15,6 +16,7 @@ const createFournisseur = async (req, res) => {
             name,
             email,
             phone,
+            id_chapitre,
             rc,
             nif,
             rib
@@ -103,4 +105,23 @@ const updateFournisseurByEmail = async (req, res) => {
     }
 };
 
-export { createFournisseur, getAllFournisseurs, updateFournisseurByEmail, deleteFournisseurByEmail , getFournisseurById };
+
+const getFournisseurByChapterId = async(req,res)=>{
+  try{
+  const {chapterId} = req.params;
+
+  const chapter =await Chapitre.findByPk(chapterId);
+  if(!chapter){
+    return res.status(404).json({message : 'chapter not found'})
+  }
+  const fournisseurs =await Fournisseur.findAll({
+    where :  {id_chapitre : chapterId}
+  });
+
+  res.status(200).json(fournisseurs)
+} catch (error) {
+  res.status(500).json({ message: 'Failed to retrieve fournisseurs', error: error.message });
+}
+  }
+
+export { createFournisseur, getAllFournisseurs, updateFournisseurByEmail, deleteFournisseurByEmail , getFournisseurById,getFournisseurByChapterId };

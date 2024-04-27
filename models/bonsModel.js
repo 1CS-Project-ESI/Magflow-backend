@@ -73,6 +73,14 @@ const BonReception = sequelize.define('bonreception', {
             key: 'user_id'
         }
     },
+     id_boncommande: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'BonCommande', 
+            key: 'id'
+        }
+    },
     number: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -104,7 +112,7 @@ const ProduitsCommandes = sequelize.define('produitscommandes', {
             key: 'id'
         }
     },
-    orderedquantity: {
+    ordered_quantity: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
@@ -128,9 +136,9 @@ const ProduitsDelivres = sequelize.define('produitsdelivres', {
     },
     id_bonreception: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
+        primaryKey: true, 
         references: {
-            model: 'bonreception',
+            model: 'bonreception', 
             key: 'id'
         }
     },

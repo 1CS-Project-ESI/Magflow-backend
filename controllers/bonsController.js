@@ -1,4 +1,4 @@
-import { BonCommande , BonReception, ProduitsCommandes } from "../models/bonsModel.js";
+import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres } from "../models/bonsModel.js";
 import { Article , Produit } from "../models/productsModel.js";
 
 import { Op, Sequelize } from 'sequelize';
@@ -75,39 +75,35 @@ const createBonCommande = async (req, res) => {
 };
 
 
-
-
-
 const createBonRepection = async (req, res) => {
     try {
-        const { id_magasinier } = req.params;
-        const { number, commandId, deliverydate, products, receivedQuantities } = req.body;
-        
+        const { id_boncommande } = req.params;
+        const { number, id_magasinier, deliverydate, products, receivedQuantities } = req.body;
+
         const bonReception = await BonReception.create({
+            id_boncommande,
             id_magasinier,
             number,
             deliverydate,
         });
-        
-        // Searching for "bon de commande" based on its number (i need the id)
-        const bonCommande = await BonCommande.findOne({ where: { id: commandId } });
-        if (!bonCommande) {
-            throw new Error('BonCommande not found for the provided commandeNumber');
-        }
 
-        for (let i = 0; i < products.length; i++) {
-            const productId = products[i];
-            const receivedQuantity = receivedQuantities[i];
-            console.log(`this is produnt number ${i}and its questiiti is ${receivedQuantity}`);
-            console.log(bonReception.id ,bonCommande.id ,receivedQuantity,productId);
-            await ProduitsDelivres.update(
-                { receivedquantity: receivedQuantity, id_bonreception: bonReception.id },
-                { where: { id_produit: productId, id_boncommande: bonCommande.id } }
-            );
-        }
+        const bonReceptionId = bonReception.id;
 
-        res.status(200).json({ message: 'BonReception created successfully', bonReception, commandId: bonCommande.id });
+        const produitsDelivresPromises = products.map(async (productId, index) => {
+            const receivedQuantity = receivedQuantities[index];
+            await ProduitsDelivres.create({
+                id_produit: productId,
+                id_bonreception: bonReceptionId,
+                receivedquantity: receivedQuantity
+            });
+        });
+
+        // waiting for all ProduitsDelivres instances to be created (using promise)
+        await Promise.all(produitsDelivresPromises);
+
+        res.status(200).json({ message: 'BonReception created successfully', bonReception });
     } catch (error) {
+        console.error('Error creating BonReception:', error);
         res.status(500).json({ message: 'Failed to create BonReception', error: error.message });
     }
 };

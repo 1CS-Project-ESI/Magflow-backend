@@ -10,7 +10,7 @@ router.use(cors());
 
 
 router.post('/create/:id_agentServiceAchat',createBonCommande);  // link done 
-router.post('/create-bon-reception/:id_magasinier', createBonRepection);
+router.post('/create-bon-reception/:id_boncommande', createBonRepection);
 router.get('/allcommands', getAllCommands); //link done 
 router.get('/allreceptions',getAllReception); //link done 
 router.get('/commandproducts/:command_id',getAllProductsOfCommand); // link done 

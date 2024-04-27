@@ -110,11 +110,11 @@ const getFournisseurByChapterId = async(req,res)=>{
   try{
   const {chapterId} = req.params;
 
-  const chapter = Chapitre.findByPk(chapterId);
+  const chapter =await Chapitre.findByPk(chapterId);
   if(!chapter){
     return res.status(404).json({message : 'chapter not found'})
   }
-  const fournisseurs = Fournisseur.findAll({
+  const fournisseurs =await Fournisseur.findAll({
     where :  {id_chapitre : chapterId}
   });
 

@@ -33,9 +33,9 @@ const getResponsableStructure = asyncHandler(async (req, res) => {
       const userIds = responsableIds.map(responsable => responsable.user_id);
   
       // Find users with the extracted user IDs and matching structure_id
-      const responsables = await User.findAll({ 
-        where: { id: userIds, id_structure: id }, 
-        attributes: ['id', 'firstname', 'lastname', 'email'] 
+      const responsables = await StructureResponsable.findAll({ 
+        where: { user_id: userIds, id_structure: id }, 
+        // attributes: ['id', 'firstname', 'lastname', 'email'] 
       });
   
       if (!responsables || responsables.length === 0) {

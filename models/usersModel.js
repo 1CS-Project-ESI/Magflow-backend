@@ -179,11 +179,17 @@ const StructureResponsable = sequelize.define('structureresponsable', {
     type: DataTypes.STRING(20),
     allowNull: false,
   },
+  id_structure: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'structures',
+      key: 'id',
+    },
+  },
 }, {
-  tableName:'structureresponsable',
+  tableName: 'structureresponsable',
   timestamps: false,
 });
-
 // sequelize.sync({ alter: true })
 //   .then(() => {
 //     console.log('Database synchronized');

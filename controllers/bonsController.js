@@ -1,5 +1,5 @@
-import { BonCommande , BonReception, ProduitsCommandes  } from "../models/bonsModel.js";
-import { Article , Produit,ProduitsArticle } from "../models/productsModel.js";
+import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres } from "../models/bonsModel.js";
+import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 
 import { Op, Sequelize } from 'sequelize';
 
@@ -85,37 +85,50 @@ const createBonCommande = async (req, res) => {
 };
 
 
-
 const createBonRepection = async (req, res) => {
     try {
-        const { id_magasinier } = req.params;
-        const { number, commandId, deliverydate, products, receivedQuantities } = req.body;
-        
+        const { id_boncommande } = req.params;
+        const { number, id_magasinier, deliverydate, products, receivedQuantities } = req.body;
+
+        const isValidProducts = await Promise.all(products.map(async (productId) => {
+
+            const existingProduct = await ProduitsCommandes.findOne({
+                where: {
+                    id_produit: productId,
+                    id_boncommande: id_boncommande
+                }
+            });
+            return !!existingProduct;
+        }));
+
+        if (isValidProducts.includes(false)) {
+            return res.status(400).json({ message: 'These products were not ordred ' });
+        }
+
         const bonReception = await BonReception.create({
+            id_boncommande,
             id_magasinier,
             number,
             deliverydate,
         });
-        
-        // Searching for "bon de commande" based on its number (i need the id)
-        const BonCommande = await BonCommande.findOne({ where: { id: commandId } });
-        if (!BonCommande) {
-            throw new Error('BonCommande not found for the provided commandeNumber');
-        }
 
-        for (let i = 0; i < products.length; i++) {
-            const productId = products[i];
-            const receivedQuantity = receivedQuantities[i];
-            console.log(`this is produnt number ${i}and its questiiti is ${receivedQuantity}`);
-            console.log(bonReception.id ,BonCommande.id ,receivedQuantity,productId);
-            await ProduitsDelivres.update(
-                { receivedquantity: receivedQuantity, id_bonreception: bonReception.id },
-                { where: { id_produit: productId, id_boncommande: BonCommande.id } }
-            );
-        }
+        const bonReceptionId = bonReception.id;
 
-        res.status(200).json({ message: 'BonReception created successfully', bonReception, commandId: BonCommande.id });
+        const produitsDelivresPromises = products.map(async (productId, index) => {
+            const receivedQuantity = receivedQuantities[index];
+            await ProduitsDelivres.create({
+                id_produit: productId,
+                id_bonreception: bonReceptionId,
+                receivedquantity: receivedQuantity
+            });
+        });
+
+        // wait for all ProduitsDelivres instances to be created (using promise)
+        await Promise.all(produitsDelivresPromises);
+
+        res.status(200).json({ message: 'BonReception created successfully', bonReception });
     } catch (error) {
+        console.error('Error creating BonReception:', error);
         res.status(500).json({ message: 'Failed to create BonReception', error: error.message });
     }
 };
@@ -178,34 +191,59 @@ const getAllProductsOfCommand = async (req, res) => {
 };
 
 
+
 const RemainingProducts = async (req, res) => {
     try {
         const CommandId = req.params.CommandId;
 
-        const remainingProducts = await ProduitsDelivres.findAll({
+        const receptions = await BonReception.findAll({
             where: {
                 id_boncommande: CommandId,
-                receivedquantity: {
-                    [Sequelize.Op.lt]: Sequelize.col('orderedquantity')
-                }
             },
-            attributes: ['id_produit', 'orderedquantity', 'receivedquantity'],
-            include: [{ model: Produit, as: 'produit' }] // Include Produit model with alias 'produit'
+            attributes: ['id'],
+            raw: true,
+        });
+
+        // reception of receptions (array of "bon de receptions")
+        const receptionIds = receptions.map(reception => reception.id);
+
+        const orderedProducts = await ProduitsCommandes.findAll({
+            where: {
+                id_boncommande: CommandId,
+            },
+            attributes: ['id_produit', 'ordered_quantity'],
+            raw: true,
         });
 
 
-        const remainingProductsInfo = remainingProducts.map(product => {
-            const remainingQuantity = product.orderedquantity - product.receivedquantity;
+        const receivedProducts = await ProduitsDelivres.findAll({
+            where: {
+                id_bonreception: receptionIds,
+            },
+            attributes: ['id_produit', 'receivedquantity'],
+            raw: true,
+        });
+
+        // Map ordered quantities to object for easier access
+        const orderedMap = orderedProducts.reduce((acc, product) => {
+            acc[product.id_produit] = product.ordered_quantity;
+            return acc;
+        }, {});
+
+        const remainingProducts = orderedProducts.map(product => {
+            const receivedProduct = receivedProducts.find(item => item.id_produit === product.id_produit);
+            // if the products doesnt exist in the produitsDelivres table then received quantity = 0 
+            const receivedQuantity = receivedProduct ? receivedProduct.receivedquantity : 0;
+            const remainingQuantity = product.ordered_quantity - receivedQuantity;
             return {
                 productId: product.id_produit,
-                productName: product.produit.name, // Access name through alias 'produit'
-                orderedQuantity: product.orderedquantity,
-                receivedQuantity: product.receivedquantity,
+                orderedQuantity: product.ordered_quantity,
+                receivedQuantity: receivedQuantity,
                 remainingQuantity: remainingQuantity
             };
         });
 
-        res.status(200).json({ remainingProducts: remainingProductsInfo });
+        res.status(200).json({ remainingProducts: remainingProducts });
     } catch (error) {
         console.error('Error fetching remaining products:', error);
         res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });

@@ -1,7 +1,8 @@
 import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
-
+import { Structure } from "../models/structuresModel.js";
 import { Op, Sequelize, where } from 'sequelize';
+import { StructureResponsable , Consumer } from "../models/usersModel.js";
 
 
 const createBonCommande = async (req, res) => {
@@ -559,9 +560,47 @@ const getAllCommandsInterne = async (req,res)=> {
 };
 
 
+const getAllBonSorties = async(req,res)=>{
+    try {
+        const sorties = await BonSortie.findAll();
+        res.status(200).json(sorties);
+    } catch (error) {
+        res.status(500).json({message : 'Failed to fetch all bons sorites' , error :error.message})   
+    }
+};
+
+const getBonCommandInterneForStructureResponsable = async (req,res) => {
+    try {
+        const {id_structureresponsable} = req.params
+        // Find the structureresponsable associated with the given structureId
+        const responsable = await StructureResponsable.findByPk(id_structureresponsable)
+        
+
+        if (!responsable) {
+            throw new Error('Structure responsable not found');
+        }
+
+        // Retrieve all consumers within the structure
+        const consumers = await Consumer.findAll({
+            where: { id_structure: responsable.id_structure }
+        });
+
+        // Get all boncommandinterne made by those consumers
+        const bonCommandInterne = await BonCommandeInterne.findAll({
+            where: { id_consommateur: consumers.map(consumer => consumer.user_id) }
+        });
+
+        return res.status(200).json(bonCommandInterne);
+    } catch (error) {
+        console.error('Failed to get boncommandinterne for structure responsable:', error);
+        throw error;
+    }
+};
 
 
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie};
+
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable};
 

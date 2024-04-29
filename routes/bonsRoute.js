@@ -1,7 +1,7 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
 
-import { createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie} from "../controllers/bonsController.js";
+import { createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable} from "../controllers/bonsController.js";
 
 const router = express.Router();
 import cors from "cors";
@@ -24,6 +24,8 @@ router.get('/getcommandproductswithnumber/:number',getAllProductsOfCommandWithNu
 router.get('/command/details/:id',getCommandDetails);
 router.get('/consumer-commands/:id',getConsommateurCommands);
 router.get('/allcommandsinterne',getAllCommandsInterne);
+router.get('/allbonsortie',getAllBonSorties);
+router.get('/allcomandsforresposnable/:id_structureresponsable',getBonCommandInterneForStructureResponsable)
 
 
 export default router;

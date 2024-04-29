@@ -1,7 +1,7 @@
-import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne} from "../models/bonsModel.js";
+import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 
-import { Op, Sequelize } from 'sequelize';
+import { Op, Sequelize, where } from 'sequelize';
 
 
 const createBonCommande = async (req, res) => {
@@ -434,7 +434,7 @@ const getcommandinternedetails = async (req, res) => {
             if (product) {
                 return {
                     name: product.name,
-                    characteristics: product.caracteristics,
+                    characteristics: product.caracteristicsgit ,
                     orderedQuantity: order.orderedquantity,
                     accordedQuantity: order.accordedquantity
                 };
@@ -451,7 +451,30 @@ const getcommandinternedetails = async (req, res) => {
     }
 };
 
+const getConsommateurCommands = async (req,res) => {
+    try {
+        const {id} = req.params
+        const commands = await BonCommandeInterne.findAll({
+            where : {id_consommateur : id}
+        })
+
+        res.status(200).json(commands)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch commands of consumer', error: error.message });
+    }
+};
+
+const getAllCommandsInterne = async (req,res)=> {
+    try {
+        const commands = await BonCommandeInterne.findAll();
+        res.status(200).json(commands); 
+    } catch (error) {
+        res.status(500).json({message : 'Failed to fetch all commands' , error :error.message})
+    }
+};
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails};
+
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne};
 

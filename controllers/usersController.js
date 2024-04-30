@@ -92,7 +92,7 @@ const generateMatricule = () => {
 };
 const createUser = asyncHandler(async (req, res) => {
     try {
-        const { firstname, lastname, email, password, phone, isactive, role} = req.body;
+        const { firstname, lastname, email, password, phone, isactive, role,id_structure} = req.body;
 
 
         // Validate required fields
@@ -149,10 +149,41 @@ const createUser = asyncHandler(async (req, res) => {
                 return res.status(400).json({ message: "Invalid role" });
         }
 
-        await roleModel.create({
-            matricule: generateMatricule(), 
-            user_id: newuser.id,
-        });
+        // await roleModel.create({
+        //     matricule: generateMatricule(), 
+        //     user_id: newuser.id,
+        // });
+             // Create the consumer with the specified structure id
+            //  if (role === 'consumer') {
+            //     await roleModel.create({
+            //         matricule: generateMatricule(), 
+            //         user_id: newuser.id,
+            //         id_structure: id_structure // Include the id_structure when creating a consumer
+            //     });
+            // } else {
+            //     await roleModel.create({
+            //         matricule: generateMatricule(), 
+            //         user_id: newuser.id,
+            //     });
+            // }
+            
+            if (role === 'consumer' || role === 'structureresponsable') {
+                if (!id_structure) {
+                    return res.status(400).json({ message: "id_structure is required for consumer and structureresponsable roles" });
+                }
+                await roleModel.create({
+                    matricule: generateMatricule(), 
+                    user_id: newuser.id,
+                    id_structure: id_structure
+                });
+            } else {
+                await roleModel.create({
+                    matricule: generateMatricule(), 
+                    user_id: newuser.id,
+                });
+            }
+            
+
         
         const userRole = await UsersRoles.create({
             user_id: newuser.id,

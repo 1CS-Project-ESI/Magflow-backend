@@ -1,7 +1,8 @@
 import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
-
+import { Structure } from "../models/structuresModel.js";
 import { Op, Sequelize, where } from 'sequelize';
+import { StructureResponsable , Consumer } from "../models/usersModel.js";
 
 
 const createBonCommande = async (req, res) => {
@@ -450,6 +451,91 @@ const getcommandinternedetails = async (req, res) => {
         res.status(500).json({ message: 'Failed to get internal command details', error: error.message });
     }
 };
+const createBonSortie = async (req, res) => {
+    try {
+        const { id_boncommandeinterne } = req.params;
+        const { id_magasinier, observation, service, date, produitsServie } = req.body;
+
+        // Check if the boncommandeinterne exists
+        const bonCommandeInterne = await BonCommandeInterne.findOne({
+            where: { id: id_boncommandeinterne }
+        });
+
+        if (!bonCommandeInterne) {
+            return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
+        }
+
+        // Check if each produitServie is contained in boncommandeinterne and served quantity <= accorded quantity
+        for (const produitServie of produitsServie) {
+            const produitCommande = await ProduitsCommandeInterne.findOne({
+                where: {
+                    id_produit: produitServie.id_produit,
+                    id_boncommandeinterne
+                }
+            });
+
+            if (!produitCommande) {
+                return res.status(400).json({ message: 'Product not found in boncommandeinterne' });
+            }
+
+            if (produitCommande.accordedquantity < produitServie.servedquantity) {
+                return res.status(400).json({ message: 'Served quantity exceeds accorded quantity' });
+            }
+        }
+
+        // Calculate the sum of served quantity for each product in all bonsortie associated with the boncommandeinterne
+        const totalServedQuantity = {};
+        const bonsSorties = await BonSortie.findAll({
+            where: { id_boncommandeinterne }
+        });
+
+        for (const bonsortie of bonsSorties) {
+            const produitsServies = await ProduitsServie.findAll({
+                where: { id_bonsortie: bonsortie.id }
+            });
+
+            for (const produitServie of produitsServies) {
+                totalServedQuantity[produitServie.id_produit] = (totalServedQuantity[produitServie.id_produit] || 0) + produitServie.servedquantity;
+            }
+        }
+
+        // Check if the sum of served quantity for each product <= accorded quantity
+        for (const produitId in totalServedQuantity) {
+            const accordedQuantity = await ProduitsCommandeInterne.sum('accordedquantity', {
+                where: {
+                    id_produit: produitId,
+                    id_boncommandeinterne
+                }
+            });
+
+            if (totalServedQuantity[produitId] > accordedQuantity) {
+                return res.status(400).json({ message: 'Total served quantity exceeds accorded quantity for product' });
+            }
+        }
+
+        // All verifications passed, create bonsortie and produitsServie entries
+        const bonSortie = await BonSortie.create({
+            id_boncommandeinterne,
+            id_magasinier,
+            observation,
+            service,
+            date
+        });
+
+        for (const produitServie of produitsServie) {
+            await ProduitsServie.create({
+                id_bonsortie: bonSortie.id,
+                id_produit: produitServie.id_produit,
+                servedquantity: produitServie.servedquantity
+            });
+        }
+
+        res.status(201).json({ message: 'Bon de sortie created successfully', bonSortie });
+    } catch (error) {
+        console.error('Failed to create bon de sortie:', error);
+        res.status(500).json({ message: 'Failed to create bon de sortie', error: error.message });
+    }
+};
 
 const getConsommateurCommands = async (req,res) => {
     try {
@@ -474,7 +560,47 @@ const getAllCommandsInterne = async (req,res)=> {
 };
 
 
+const getAllBonSorties = async(req,res)=>{
+    try {
+        const sorties = await BonSortie.findAll();
+        res.status(200).json(sorties);
+    } catch (error) {
+        res.status(500).json({message : 'Failed to fetch all bons sorites' , error :error.message})   
+    }
+};
+
+const getBonCommandInterneForStructureResponsable = async (req,res) => {
+    try {
+        const {id_structureresponsable} = req.params
+        // Find the structureresponsable associated with the given structureId
+        const responsable = await StructureResponsable.findByPk(id_structureresponsable)
+        
+
+        if (!responsable) {
+            throw new Error('Structure responsable not found');
+        }
+
+        // Retrieve all consumers within the structure
+        const consumers = await Consumer.findAll({
+            where: { id_structure: responsable.id_structure }
+        });
+
+        // Get all boncommandinterne made by those consumers
+        const bonCommandInterne = await BonCommandeInterne.findAll({
+            where: { id_consommateur: consumers.map(consumer => consumer.user_id) }
+        });
+
+        return res.status(200).json(bonCommandInterne);
+    } catch (error) {
+        console.error('Failed to get boncommandinterne for structure responsable:', error);
+        throw error;
+    }
+};
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne};
+
+
+
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable};
 

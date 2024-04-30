@@ -599,6 +599,37 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
     }
 };
 
+
+const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
+    try {
+        const { role } = req.body; // Assuming user role is available in req.user
+        let validationStatus;
+
+        // Check user role and set validation status accordingly
+        switch (role) {
+            case 'director':
+                validationStatus = 1;
+                break;
+            case 'magazinier':
+                validationStatus = 2;
+                break;
+            default:
+                return res.status(403).json({ message: 'User role not authorized' });
+        }
+
+        // Retrieve bon de command interne based on role and validation status
+        const bonCommandInterne = await BonCommandeInterne.findAll({
+            where: { validation: validationStatus }
+        });
+
+        return res.status(200).json(bonCommandInterne);
+    } catch (error) {
+        console.error('Failed to get bon command interne:', error);
+        return res.status(500).json({ message: 'Failed to get bon command interne', error: error.message });
+    }
+};
+
+
 const createBonDecharge = async (req, res) => {
     let transaction;
     try {
@@ -796,5 +827,4 @@ const deleteBonDechargeById = async (req, res) => {
 }; 
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne,createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById};
-
+export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById}

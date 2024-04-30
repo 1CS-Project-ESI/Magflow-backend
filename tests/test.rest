@@ -235,7 +235,14 @@ DELETE  http://localhost:4000/api/fournisseur/delete/pc@email.com
 
 ###
 
-GET http://localhost:4000/api/bons/allcomandsforresposnable/102
+GET http://localhost:4000/api/bons/allcomandsforresposnable/103
+###
+GET http://localhost:4000/api/bons/getAllBonCommandInterneFFordirectorMagazinier
+Content-Type: application/json
+
+{
+  "role":"magazinier"
+}
 ### 
 POST http://localhost:4000/api/bons/createBonDecharge/140
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4

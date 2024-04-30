@@ -64,30 +64,34 @@ const Chapitre = sequelize.define('chapitre', {
     timestamps : false ,
     tableName : 'article'
   });
-
   const Produit = sequelize.define('produit', {
     id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-  
     name: {
-      type: DataTypes.STRING,
-      allowNull: false
+        type: DataTypes.STRING,
+        allowNull: false
     },
     caracteristics: {
-      type: DataTypes.STRING,
-      allowNull: false
+        type: DataTypes.STRING,
+        allowNull: false
     },
     quantity: {
-      type: DataTypes.INTEGER,
-      allowNull: true
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
-  },{
-    timestamps : false ,
-    tableName : 'produit'
-  });
+    seuil: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0 // Assuming default seuil is 0, adjust as needed
+    }
+}, {
+    timestamps: false,
+    tableName: 'produit'
+});
+
 
 
   const ProduitsArticle = sequelize.define('produitsarticle', {

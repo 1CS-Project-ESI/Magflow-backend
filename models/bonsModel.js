@@ -289,6 +289,15 @@ const BonDecharge = sequelize.define('bondecharge', {
             key: 'id'
         }
     },
+    id_consommateur: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'consumer',
+            key: 'id'
+        }
+    },
+    
     date: {
         type: DataTypes.DATE,
         allowNull: false
@@ -296,6 +305,11 @@ const BonDecharge = sequelize.define('bondecharge', {
     observation: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'not_received' // Set the default value to 'not_received'
     }
 }, {
     tableName: 'bondecharge',
@@ -322,7 +336,10 @@ const ProduitsDecharges = sequelize.define('produitsdecharges', {
     dechargedquantity: {
         type: DataTypes.INTEGER,
         allowNull: false
-    }
+    },
+    // validate: {
+    //     min: 0 // Ensure that dechargedquantity is always non-negative
+    // }
 }, {
     tableName: 'produitsdecharges',
     timestamps: false

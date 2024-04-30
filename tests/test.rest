@@ -151,7 +151,7 @@ DELETE http://localhost:4000/api/structures/delete/3
 GET http://localhost:4000/api/structures/responsable/1
 
 ###
-POST : http://localhost:4000/api/users/createuser
+POST  http://localhost:4000/api/users/createuser
 
 {
     "firstname": "houyem",
@@ -186,7 +186,7 @@ POST http://localhost:4000/api/bons/create/130
 }
 
 ### 
-POST : http://localhost:4000/api/bons/create-bon-reception/61
+POST  http://localhost:4000/api/bons/create-bon-reception/61
 
 {
   "number": 1235,
@@ -198,15 +198,15 @@ POST : http://localhost:4000/api/bons/create-bon-reception/61
 
 
 ### 
-GET : http://localhost:4000/api/bons/allreceptions
+GET  http://localhost:4000/api/bons/allreceptions
 
 
 ###
-GET : http://localhost:4000/api/bons/remaining-products/16 
+GET  http://localhost:4000/api/bons/remaining-products/16 
 
 
 ###
-POST : http://localhost:4000/api/fournisseur/create
+POST  http://localhost:4000/api/fournisseur/create
 
 {
     "name": "PC Store",
@@ -218,15 +218,57 @@ POST : http://localhost:4000/api/fournisseur/create
 }
 
 ###
-GET : http://localhost:4000/api/fournisseur/allFournisseurs
+GET  http://localhost:4000/api/fournisseur/allFournisseurs
 
 ###
-PUT : http://localhost:4000/api/fournisseur/update/pc@email.com
+PUT  http://localhost:4000/api/fournisseur/update/pc@email.com
 
 {
     "phone": 987654321
 }
 
 ### 
-DELETE : http://localhost:4000/api/fournisseur/delete/pc@email.com
+DELETE  http://localhost:4000/api/fournisseur/delete/pc@email.com
 
+
+
+###
+
+POST http://localhost:4000/api/bons/createBonDecharge/140
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{
+  "date": "2024-04-29",
+  "description": "Borrowing some products for a project",
+  "id_consommateur" :"119",
+  "id_magasinier":"140",
+  "produitsdecharges": [
+    { "id": 5, "quantity": 10 },
+    { "id": 4, "quantity": 10 }
+  ]
+}
+
+
+###
+POST http://localhost:4000/api/bons/receiveBonDecharge/17
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{
+  "receiveddecharges": [
+    { "id": 5, "dechargedquantity": 15},
+    { "id": 4, "dechargedquantity":15}
+  ]
+}
+
+
+### 
+GET  http://localhost:4000/api/bons/getAllBonDecharges
+
+### 
+GET  http://localhost:4000/api/bons/getBonDechargeDetailsById/14
+Content-Type: application/json
+###
+
+DELETE http://localhost:4000/api/bons/deleteBonDechargeById/18

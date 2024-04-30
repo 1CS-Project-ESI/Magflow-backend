@@ -1,8 +1,8 @@
-import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie} from "../models/bonsModel.js";
+import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie,BonDecharge, ProduitsDecharges} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 
-import { Op, Sequelize, where } from 'sequelize';
-
+import { Op, Sequelize,where } from 'sequelize';
+// import sequelize from '../config/database'; // Check this import statement
 
 const createBonCommande = async (req, res) => {
     try {
@@ -476,5 +476,217 @@ const getAllCommandsInterne = async (req,res)=> {
 
 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne};
+// creation bon decharges 
+const createBonDecharge = async (req, res) => {
+    let transaction;
+    try {
+        // Validate input data
+        const { date, description, produitsdecharges, id_consommateur } = req.body;
+        const { id_magasinier } = req.params;
+
+        // Start a transaction
+       // transaction = await Sequelize.transaction();
+
+        // Create borrowing receipt entry
+        const bonDecharge = await BonDecharge.create({
+            id_magasinier: id_magasinier,
+            id_consommateur: id_consommateur,
+            date: date,
+            description: description
+        }, ); // ,{ transaction })
+
+        // Handle many-to-many relationship with ProduitsDecharges table
+        for (const produit of produitsdecharges) {
+            // Get the product details
+            const product = await Produit.findByPk(produit.id, { transaction });
+
+            if (!product) {
+                // If the product does not exist, rollback the transaction
+                // await transaction.rollback();
+                console.error(`Product with ID ${produit.id} not found.`);
+                return res.status(404).json({ success: false, message: `Product with ID ${produit.id} not found.` });
+            }
+
+            // Calculate the available quantity (quantity - seuil)
+            const availableQuantity = Math.max(0, product.quantity - product.seuil); // product.quantity is the  product quantity avaible in the stock 
+
+            // Calculate the accorded quantity based on user-requested quantity and available quantity
+            const accordedQuantity = Math.min(produit.quantity, availableQuantity); // produit.quantity is the quatntity the user wants to borrow 
+
+            // Create ProduitsDecharges entry with the accorded quantity
+            await ProduitsDecharges.create({
+                id_bondecharge: bonDecharge.id,
+                id_produit: produit.id,
+                dechargedquantity: accordedQuantity
+            }, ); // { transaction }
+
+            // Subtract the accorded quantity from the product's quantity
+            await Produit.update({
+                quantity: product.quantity - accordedQuantity
+            }, {
+                where: { id: produit.id },
+                // transaction
+            });
+
+            if (product.quantity <= product.seuil) {
+                // Send alert/notification
+                // Example: You can use a notification service like email, SMS, or push notification
+                console.log(`Alert: Quantity of product '${product.name}' (${product.quantity}) is below the threshold (${product.seuil}).`);
+            }
+        }
+
+        // Commit the transaction
+        // await transaction.commit();
+
+        res.status(201).json({ success: true, bonDecharge });
+    } catch (error) {
+        console.error('Error creating borrowing receipt:', error);
+        // Rollback the transaction if an error occurs
+        // if (transaction) await transaction.rollback();
+        res.status(500).json({ success: false, message: "Error creating borrowing receipt", error: error.message });
+    }
+};
+
+
+
+// reciedved bon decharge 
+
+const receiveBorrowedProducts = async (req, res) => {
+    try {
+        
+        const { receiveddecharges } = req.body;
+        const { id_bondecharge } = req.params;
+
+        const bonDecharge = await BonDecharge.findByPk(id_bondecharge);
+
+        if (!bonDecharge) {
+            return res.status(404).json({ success: false, message: 'Borrowing receipt not found' });
+        }
+
+        
+        for (const produitDecharge of receiveddecharges) {
+            // update product table 
+            const produit = await Produit.findByPk(produitDecharge.id);
+
+            if (!produit) {
+                console.error(`Product with ID ${produitDecharge.id} not found`);
+                continue;
+            }
+
+            produit.quantity += produitDecharge.dechargedquantity;
+            await produit.save();
+
+
+            // update product decharge 
+            const produitDechargeRecord = await ProduitsDecharges.findOne({
+                where: { id_bondecharge, id_produit: produitDecharge.id }
+            });
+
+            if (produitDechargeRecord) {
+                produitDechargeRecord.dechargedquantity -= produitDecharge.dechargedquantity;
+                produitDechargeRecord.dechargedquantity = Math.max(produitDechargeRecord.dechargedquantity,0) // to ensure that the value is minim zero and the record will be destroyed 
+                await produitDechargeRecord.save();
+            }
+            if (produitDechargeRecord.dechargedquantity ==  0 ){
+                produitDechargeRecord.destroy();
+
+            }
+
+           
+        }
+        const remainingProduitDecharges = await ProduitsDecharges.count({ where: { id_bondecharge } });
+        if (remainingProduitDecharges === 0) {
+            bonDecharge.status = 'Received';
+            await bonDecharge.save();
+        }
+
+        // Update the borrowing receipt status to indicate that the products were received
+        
+
+        return res.status(200).json({ success: true, message: 'Borrowed products received successfully' });
+    } catch (error) {
+        console.error('Error receiving borrowed products:', error);
+        res.status(500).json({ success: false, message: 'Error receiving borrowed products', error: error.message });
+    }
+};
+
+// get all bon decharge 
+const getAllBonDecharges = async (req, res) => {
+    try {
+       
+        const bonDecharges = await BonDecharge.findAll();
+
+        res.status(200).json({ success: true, bonDecharges });
+    } catch (error) {
+        console.error('Error fetching borrowing receipts:', error);
+        res.status(500).json({ success: false, message: 'Error fetching borrowing receipts', error: error.message });
+    }
+};
+
+// get bon decharges detileas 
+
+const getBonDechargeDetailsById = async (req, res) => {
+    try {
+        const { id_bondecharge } = req.params;
+
+
+        // Fetch the borrowing receipt by ID
+        const bonDecharge = await BonDecharge.findByPk(id_bondecharge);
+        console.log(bonDecharge);
+        if (!bonDecharge) {
+            return res.status(404).json({ success: false, message: 'Borrowing receipt not found' });
+        }
+
+        // Fetch all received products associated with this borrowing receipt
+        const produitsDecharges = await ProduitsDecharges.findAll({
+            where: { id_bondecharge: id_bondecharge },
+        });
+        console.log(produitsDecharges);
+
+        // Return the borrowing receipt details along with received product details
+        res.status(200).json({ success: true, bonDecharge, produitsDecharges });
+    } catch (error) {
+        console.error('Error fetching borrowing receipt details:', error);
+        res.status(500).json({ success: false, message: 'Error fetching borrowing receipt details', error: error.message });
+    }
+};
+
+
+
+// delete by id 
+const deleteBonDechargeById = async (req, res) => {
+    try {
+        const { id_bondecharge  } = req.params;
+
+        // Find the record by ID
+        const bonDecharge = await BonDecharge.findByPk(id_bondecharge);
+
+        // If the record doesn't exist, return an error
+        if (!bonDecharge) {
+            return res.status(404).json({ success: false, message: 'Borrowing receipt not found' });
+        }
+        const count = await ProduitsDecharges.count({ where: { id_bondecharge: id_bondecharge } });
+        console.log("this is the count ",count);
+        // If there are associated ProduitsDecharges, return an error
+        if (count > 0) {
+            return res.status(400).json({ success: false, message: 'Cannot delete. Borrowing receipt has associated product records' });
+        }
+        // Delete the record
+        await bonDecharge.destroy();
+
+        // Return success response
+        res.status(200).json({ success: true, message: 'Borrowing receipt deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting borrowing receipt:', error);
+        res.status(500).json({ success: false, message: 'Error deleting borrowing receipt', error: error.message });
+    }
+};
+
+
+// to add :
+    // add status recived->  done 
+    // recvBondecharges products ->  updat the product decharger + update the satsus 
+    // delete by id -> done 
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne,createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById};
 

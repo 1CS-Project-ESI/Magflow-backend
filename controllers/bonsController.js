@@ -827,4 +827,55 @@ const deleteBonDechargeById = async (req, res) => {
 }; 
 
 
+// const validateBonCommandInterne = async (req, res) => {
+//     try {
+//         const { id_boncommandeinterne } = req.params;
+//         const { role } = req.body;
+
+//         // Find the bon de commande interne by its ID
+//         const bonCommandInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
+
+//         if (!bonCommandInterne) {
+//             return res.status(404).json({ message: 'Bon de commande interne not found' });
+//         }
+
+//         // Perform validation based on user role and current validation value
+//         switch (role) {
+//             case 'responsable_structure':
+//                 if (bonCommandInterne.validation === 0) {
+//                     bonCommandInterne.validation += 1;
+//                 } else {
+//                     return res.status(400).json({ message: 'Validation not allowed for this user role or current state' });
+//                 }
+//                 break;
+//             case 'director':
+//                 if (bonCommandInterne.validation === 1) {
+//                     bonCommandInterne.validation += 1;
+//                 } else {
+//                     return res.status(400).json({ message: 'Validation not allowed for this user role or current state' });
+//                 }
+//                 break;
+//             case 'magazinier':
+//                 if (bonCommandInterne.validation === 2) {
+//                     bonCommandInterne.validation += 1;
+//                 } else {
+//                     return res.status(400).json({ message: 'Validation not allowed for this user role or current state' });
+//                 }
+//                 break;
+//             default:
+//                 return res.status(403).json({ message: 'User role not authorized to perform validation' });
+//         }
+
+//         // Save the updated bon de commande interne
+//         await bonCommandInterne.save();
+
+//         return res.status(200).json({ message: 'Validation performed successfully', bonCommandInterne });
+//     } catch (error) {
+//         console.error('Error performing validation:', error);
+//         return res.status(500).json({ message: 'Error performing validation', error: error.message });
+//     }
+// };
+
+
+
 export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById}

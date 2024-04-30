@@ -1,7 +1,7 @@
 import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie,BonDecharge, ProduitsDecharges} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 
-import { Structure } from "../models/structuresModel.js";
+// import { Structure } from "../models/structuresModel.js";
 import { Op, Sequelize, where } from 'sequelize';
 import { StructureResponsable , Consumer } from "../models/usersModel.js";
 
@@ -384,13 +384,14 @@ const getCommandDetails = async (req, res) => {
 const createBonCommandeInterne = async (req, res) => {
     try {
         const {id_consommateur} = req.params;
-        const {  number, date, validation, produitsCommandes } = req.body;
+        const {  number, date, validation, produitsCommandes ,typecommande} = req.body;
 
         const bonCommandeInterne = await BonCommandeInterne.create({
             id_consommateur,
             number,
             date,
-            validation
+            validation,
+            typecommande
         });
 
         // Create entries in produitscommandeinterne table
@@ -465,6 +466,10 @@ const createBonSortie = async (req, res) => {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
 
+        if(bonCommandeInterne.typecommande!='commandeinterne'){
+            return res.status(400).json({ message: 'its bon decharge' });
+        }
+
         // Check if each produitServie is contained in boncommandeinterne and served quantity <= accorded quantity
         for (const produitServie of produitsServie) {
             const produitCommande = await ProduitsCommandeInterne.findOne({
@@ -481,6 +486,7 @@ const createBonSortie = async (req, res) => {
             if (produitCommande.accordedquantity < produitServie.servedquantity) {
                 return res.status(400).json({ message: 'Served quantity exceeds accorded quantity' });
             }
+
         }
 
         // Calculate the sum of served quantity for each product in all bonsortie associated with the boncommandeinterne
@@ -513,6 +519,8 @@ const createBonSortie = async (req, res) => {
             }
         }
 
+        
+
         // All verifications passed, create bonsortie and produitsServie entries
         const bonSortie = await BonSortie.create({
             id_boncommandeinterne,
@@ -528,6 +536,13 @@ const createBonSortie = async (req, res) => {
                 id_produit: produitServie.id_produit,
                 servedquantity: produitServie.servedquantity
             });
+            const produit = await Produit.findByPk(produitServie.id_produit)
+            await Produit.update({
+                quantity: produit.quantity - produitServie.servedquantity
+            }, {
+                where: { id: produit.id },
+                // transaction
+            })
         }
 
         res.status(201).json({ message: 'Bon de sortie created successfully', bonSortie });

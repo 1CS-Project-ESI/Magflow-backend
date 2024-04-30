@@ -515,6 +515,7 @@ const createBonDecharge = async (req, res) => {
 
             // Create ProduitsDecharges entry with the accorded quantity
             await ProduitsDecharges.create({
+                
                 id_bondecharge: bonDecharge.id,
                 id_produit: produit.id,
                 dechargedquantity: accordedQuantity
@@ -682,11 +683,6 @@ const deleteBonDechargeById = async (req, res) => {
     }
 };
 
-
-// to add :
-    // add status recived->  done 
-    // recvBondecharges products ->  updat the product decharger + update the satsus 
-    // delete by id -> done 
 
 export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne,createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById};
 

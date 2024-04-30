@@ -149,23 +149,7 @@ const createUser = asyncHandler(async (req, res) => {
                 return res.status(400).json({ message: "Invalid role" });
         }
 
-        // await roleModel.create({
-        //     matricule: generateMatricule(), 
-        //     user_id: newuser.id,
-        // });
-             // Create the consumer with the specified structure id
-            //  if (role === 'consumer') {
-            //     await roleModel.create({
-            //         matricule: generateMatricule(), 
-            //         user_id: newuser.id,
-            //         id_structure: id_structure // Include the id_structure when creating a consumer
-            //     });
-            // } else {
-            //     await roleModel.create({
-            //         matricule: generateMatricule(), 
-            //         user_id: newuser.id,
-            //     });
-            // }
+ 
             
             if (role === 'consumer' || role === 'structureresponsable') {
                 if (!id_structure) {

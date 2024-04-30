@@ -587,7 +587,9 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
 
         // Get all boncommandinterne made by those consumers
         const bonCommandInterne = await BonCommandeInterne.findAll({
-            where: { id_consommateur: consumers.map(consumer => consumer.user_id) }
+            where: { id_consommateur: consumers.map(consumer => consumer.user_id),
+            validation: 0 }
+            
         });
 
         return res.status(200).json(bonCommandInterne);

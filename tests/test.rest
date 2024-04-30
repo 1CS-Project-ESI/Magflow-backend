@@ -272,3 +272,25 @@ Content-Type: application/json
 ###
 
 DELETE http://localhost:4000/api/bons/deleteBonDechargeById/18
+
+####
+
+POST http://localhost:4000/api/bons/create-bon-sortie/:id_boncommandeinterne
+
+{
+  "id_magasinier": 136,
+  "observation": "Some observation",
+  "service": "Some servicee",
+  "date": "2024-04-25",
+  "produitsServie": [
+    {
+      "id_produit": 20,
+      "servedquantity": 5
+    },
+    {
+      "id_produit": 19,
+      "servedquantity": 5
+    }
+  ]
+}
+

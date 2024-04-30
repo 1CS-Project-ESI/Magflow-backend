@@ -17,13 +17,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6M
 Content-Type: application/json
 
 {
-"firstname":"fatima",
-"lastname":"fatima",
-"email":"f.bencharef@esi-sba.dz",
+"firstname":"structureresponsable",
+"lastname":"structureresponsable",
+"email":"structureresponsable@esi-sba.dz",
 "phone":"07777",
-"password" : "fatima",
+"password" : "structureresponsable",
 "isactive":true,
-"role" : "admin"
+"role" : "structureresponsable",
+"id_structure":8
 }
 
 ### 
@@ -234,6 +235,15 @@ DELETE  http://localhost:4000/api/fournisseur/delete/pc@email.com
 
 ###
 
+GET http://localhost:4000/api/bons/allcomandsforresposnable/103
+###
+GET http://localhost:4000/api/bons/getAllBonCommandInterneFFordirectorMagazinier
+Content-Type: application/json
+
+{
+  "role":"magazinier"
+}
+### 
 POST http://localhost:4000/api/bons/createBonDecharge/140
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
 Content-Type: application/json

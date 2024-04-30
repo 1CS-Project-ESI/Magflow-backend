@@ -602,7 +602,9 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
 
         // Get all boncommandinterne made by those consumers
         const bonCommandInterne = await BonCommandeInterne.findAll({
-            where: { id_consommateur: consumers.map(consumer => consumer.user_id) }
+            where: { id_consommateur: consumers.map(consumer => consumer.user_id),
+            validation: 0 }
+            
         });
 
         return res.status(200).json(bonCommandInterne);
@@ -611,6 +613,37 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
         throw error;
     }
 };
+
+
+const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
+    try {
+        const { role } = req.body; // Assuming user role is available in req.user
+        let validationStatus;
+
+        // Check user role and set validation status accordingly
+        switch (role) {
+            case 'director':
+                validationStatus = 1;
+                break;
+            case 'magazinier':
+                validationStatus = 2;
+                break;
+            default:
+                return res.status(403).json({ message: 'User role not authorized' });
+        }
+
+        // Retrieve bon de command interne based on role and validation status
+        const bonCommandInterne = await BonCommandeInterne.findAll({
+            where: { validation: validationStatus }
+        });
+
+        return res.status(200).json(bonCommandInterne);
+    } catch (error) {
+        console.error('Failed to get bon command interne:', error);
+        return res.status(500).json({ message: 'Failed to get bon command interne', error: error.message });
+    }
+};
+
 
 const createBonDecharge = async (req, res) => {
     let transaction;
@@ -650,6 +683,7 @@ const createBonDecharge = async (req, res) => {
 
             // Create ProduitsDecharges entry with the accorded quantity
             await ProduitsDecharges.create({
+                
                 id_bondecharge: bonDecharge.id,
                 id_produit: produit.id,
                 dechargedquantity: accordedQuantity
@@ -807,6 +841,5 @@ const deleteBonDechargeById = async (req, res) => {
     }
 }; 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,deleteBonDechargeById, getBonDechargeDetailsById, getAllBonDecharges,receiveBorrowedProducts};
 
-
+export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById}

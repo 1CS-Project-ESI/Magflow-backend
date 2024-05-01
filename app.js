@@ -11,6 +11,7 @@ import fournisseurRoutes  from "./routes/fournisseurRoutes.js";
 import pdfRoutes from "./routes/pdfRoutes.js";
 import bodyParser from "body-parser";
 import session from 'express-session';
+import notificationsRoutes from "./routes/notificationsRoutes.js"
 
 
 
@@ -41,6 +42,7 @@ app.use("/api/store", productRoutes);
 app.use("/api/bons",bonsRoute);
 app.use("/api/fournisseur",fournisseurRoutes);
 app.use("/api/pdf",pdfRoutes);
+app.use("/api/notifications",notificationsRoutes)
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`);

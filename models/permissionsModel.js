@@ -44,7 +44,5 @@ const RolePermissions = sequelize.define('rolepermissions', {
   tableName: 'rolepermissions',
   timestamps: false
 });
-// Define associations if needed
-// RolePermission.belongsTo(Role, { foreignKey: 'role_id' });
-// RolePermission.belongsTo(Permission, { foreignKey: 'permission_id' });
+
 export {Permission,RolePermissions};

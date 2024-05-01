@@ -173,6 +173,10 @@ const BonCommandeInterne = sequelize.define('boncommandeinterne', {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
+    },
+    typecommande : {
+        type : DataTypes.STRING(255),
+        allowNull: false,        
     }
 }, {
     tableName: 'boncommandeinterne',
@@ -199,7 +203,7 @@ const ProduitsCommandeInterne = sequelize.define('produitscommandeinterne', {
     },
     orderedquantity: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: true
     },
     accordedquantity: {
         type: DataTypes.INTEGER,

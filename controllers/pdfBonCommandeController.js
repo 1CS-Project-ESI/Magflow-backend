@@ -7,8 +7,9 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import htmlPdf from 'html-pdf';
 
-import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie} from '../models/bonsModel.js';
-import { Consumer, User } from '../models/usersModel.js';
+import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes} from '../models/bonsModel.js';
+import { Consumer, User ,AgentServiceAchat} from '../models/usersModel.js';
+import { Fournisseur } from '../models/fournisseurModel.js';
 import { Produit } from '../models/productsModel.js';
 import { Structure } from '../models/structuresModel.js';
 
@@ -166,4 +167,86 @@ const generateBonSortiePDF = async (req, res) => {
     }
 };
 
-export { generatePDF, generateBonSortiePDF}
+const generateBonCommandePDF = async (req, res) => {
+    try {
+        const { bonCommandeId } = req.params;
+
+        // Fetch Bon de Commande details
+        const bonCommande = await BonCommande.findByPk(bonCommandeId);
+        if (!bonCommande) {
+            throw new Error('Bon de Commande not found');
+        }
+
+        // Fetch Agent Service Achat details
+        const agentServiceAchat = await AgentServiceAchat.findByPk(bonCommande.id_agentserviceachat);
+        if (!agentServiceAchat) {
+            throw new Error('Agent Service Achat not found');
+        }
+
+        const user = await User.findByPk(agentServiceAchat.user_id);
+
+        if(!user){
+            throw new Error('user not found');
+        }
+        // Fetch Fournisseur details
+        const fournisseur = await Fournisseur.findByPk(bonCommande.id_fournisseur);
+        if (!fournisseur) {
+            throw new Error('Fournisseur not found');
+        }
+
+        // Fetch Products details
+        const produitsCommandes = await ProduitsCommandes.findAll({
+            where: { id_boncommande: bonCommandeId }
+        });
+        if (!produitsCommandes || produitsCommandes.length === 0) {
+            throw new Error('Produits Commandes not found');
+        }
+
+        // Prepare products details
+        const produitsDetails = await Promise.all(produitsCommandes.map(async (produitCommande) => {
+            const produit = await Produit.findByPk(produitCommande.id_produit);
+            if (!produit) {
+                throw new Error('Produit not found');
+            }
+            return {
+                produitName: produit.name || 'N/A',
+                caracteristics: produit.caracteristics || 'N/A',
+                orderedquantity: produitCommande.ordered_quantity,
+                unitPrice: produitCommande.price,
+                totalPrice: produitCommande.price * produitCommande.ordered_quantity
+            };
+        }));
+
+        // Render HTML template with EJS
+        const templatePath = path.resolve(fileURLToPath(import.meta.url), '../bonCommandeTemplate.ejs');
+        const templateContent = fs.readFileSync(templatePath, 'utf-8');
+        const htmlContent = ejs.render(templateContent, {
+            bonCommande,
+            agentServiceAchat,
+            user,
+            fournisseur,
+            produitsDetails
+        });
+
+        // Define PDF options
+        const pdfOptions = { format: 'A4' };
+
+        // Generate PDF
+        const pdfPath = `bonCommande_${bonCommandeId}.pdf`;
+        htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+            if (err) {
+                console.error('Failed to generate Bon de Commande PDF:', err);
+                return res.status(500).json({ error: 'Failed to generate Bon de Commande PDF' });
+            }
+            console.log('Bon de Commande PDF generated successfully:', response);
+            return res.status(200).json({ pdfPath });
+        });
+    } catch (error) {
+        console.error('Error generating Bon de Commande PDF:', error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+export { generatePDF, generateBonSortiePDF , generateBonCommandePDF}

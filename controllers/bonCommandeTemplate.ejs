@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon de Commande externe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ffff;
+        }
+        .total {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bon de Commande</h1>
+        <p>Number: <%= bonCommande.number %></p>
+        <p>Date: <%= bonCommande.orderdate %></p>
+        <p>Agent Service Achat: <%= user.firstname %></p>
+        <p>Fournisseur: <%= fournisseur.name %></p>
+
+        <h2>Produits Commandés:</h2>
+        <table>
+            <tr>
+                <th>Produit</th>
+                <th>Caractéristiques</th>
+                <th>Quantité Commandée</th>
+                <th>Prix Unitaire (HT)</th>
+                <th>Prix Total (HT)</th>
+            </tr>
+            <% produitsDetails.forEach(produit => { %>
+                <tr>
+                    <td><%= produit.produitName %></td>
+                    <td><%= produit.caracteristics %></td>
+                    <td><%= produit.orderedquantity %></td>
+                    <td><%= produit.unitPrice %></td>
+                    <td><%= produit.totalPrice %></td>
+                </tr>
+            <% }); %>
+        </table>
+
+        <div class="total">
+            <p>Total HT: <%= bonCommande.total_ht %></p>
+            <p>TVA: <%= bonCommande.tva %></p>
+            <p>Total TTC: <%= bonCommande.total_ttc %></p>
+        </div>
+    </div>
+</body>
+</html>

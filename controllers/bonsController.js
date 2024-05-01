@@ -1,7 +1,7 @@
 import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie,BonDecharge, ProduitsDecharges} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 
-// import { Structure } from "../models/structuresModel.js";
+import { Structure } from "../models/structuresModel.js";
 import { Op, Sequelize, where } from 'sequelize';
 import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
 import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotificationToMagasinier } from "../services/notificationService.js";
@@ -165,7 +165,6 @@ const getAllProductsOfCommand = async (req, res) => {
         if (!command) {
             return res.status(404).json({ message: 'Command not found' });
         }
-
         // Find all products delivered for this command
         const productsData = await ProduitsCommandes.findAll({
             where: {
@@ -413,10 +412,10 @@ const createBonCommandeInterne = async (req, res) => {
             number,
             date,
             typecommande
-
         });
  
         sendNotificationToResponsable(bonCommandeInterne,id_responsable);
+
 
         for (const produitCommande of produitsCommandes) {
             await ProduitsCommandeInterne.create({
@@ -579,6 +578,10 @@ const getConsommateurCommands = async (req,res) => {
         const commands = await BonCommandeInterne.findAll({
             where : {id_consommateur : id}
         })
+
+        for(const command of commands){
+            
+        }
 
         res.status(200).json(commands)
     } catch (error) {

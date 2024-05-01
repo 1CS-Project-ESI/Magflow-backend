@@ -1,0 +1,78 @@
+<!-- views/template.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon de Commande Interne</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffff;
+        }
+        .container {
+            width: 21cm; /* A4 width */
+            height: 29.7cm; /* A4 height */
+            margin: auto;
+            padding: 20px;
+            background-color: #ffff;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black; /* Remove border color */
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            border: 1px solid black;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bon de Commande Interne</h1>
+        <p>Number: <%= bonCommandeInterne.number %></p>
+        <p>Date: <%= bonCommandeInterne.date %></p>
+        <p>Consumer: <%= user.firstname %> <%= user.lastname %></p>
+        <p>Structure: <%= structure.name %></p>
+
+        <h2>Produits Commandés:</h2>
+        <table>
+            <tr>
+                <th>Produit</th>
+                <th>Caractéristiques</th>
+                <th>Quantité Commandée</th>
+                <th>Quantité Accordée</th>
+            </tr>
+            <% productDetails.forEach(produit => { %>
+                <tr>
+                    <td><%= produit.produitName %></td>
+                    <td><%= produit.caracteristics %></td>
+                    <td><%= produit.orderedquantity %></td>
+                    <td><%= produit.accordedquantity %></td>
+                </tr>
+            <% }); %>
+        </table>
+
+       
+    </div>
+</body>
+</html>

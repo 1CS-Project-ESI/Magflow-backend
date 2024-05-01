@@ -203,7 +203,7 @@ const ProduitsCommandeInterne = sequelize.define('produitscommandeinterne', {
     },
     accordedquantity: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: true
     }
 }, {
     tableName: 'produitscommandeinterne',
@@ -337,14 +337,22 @@ const ProduitsDecharges = sequelize.define('produitsdecharges', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    // validate: {
-    //     min: 0 // Ensure that dechargedquantity is always non-negative
-    // }
 }, {
     tableName: 'produitsdecharges',
     timestamps: false
 });
 
 
-
+BonCommandeInterne.hasMany(ProduitsCommandeInterne, {
+    foreignKey: 'id_boncommandeinterne',
+    sourceKey: 'id',
+    as: 'produits'
+  });
+  
+  ProduitsCommandeInterne.belongsTo(BonCommandeInterne, {
+    foreignKey: 'id_boncommandeinterne',
+    targetKey: 'id',
+    as: 'boncommande'
+  });
+  
 export {BonReception, BonCommande, ProduitsCommandes , ProduitsDelivres , BonCommandeInterne , BonSortie,BonDecharge,ProduitsCommandeInterne,ProduitsServie,ProduitsDecharges}

@@ -3,7 +3,8 @@ import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 
 import { Structure } from "../models/structuresModel.js";
 import { Op, Sequelize, where } from 'sequelize';
-import { StructureResponsable , Consumer } from "../models/usersModel.js";
+import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
+import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotificationToMagasinier } from "../services/notificationService.js";
 
 const createBonCommande = async (req, res) => {
     try {
@@ -380,26 +381,48 @@ const getCommandDetails = async (req, res) => {
     }
 };
 
+const getIdResponsable = async (id_consommateur) => {
+    try {
+      // Logic to retrieve id_responsable based on id_consommateur
+      const consumer = await Consumer.findOne({ where: { user_id: id_consommateur } });
+      if (consumer) {
+        const structure = await Structure.findOne({ where: { id: consumer.id_structure } });
+        if (structure) {
+          const responsable = await StructureResponsable.findOne({ where: { id_structure: structure.id } });
+          if (responsable) {
+            return responsable.user_id;
+          }
+        }
+      }
+      return null; // Return null if id_responsable is not found
+    } catch (error) {
+      console.error('Failed to get id_responsable:', error);
+      throw error;
+    }
+  };
+  
 
 const createBonCommandeInterne = async (req, res) => {
     try {
         const {id_consommateur} = req.params;
-        const {  number, date, validation, produitsCommandes } = req.body;
+        const { number, date, produitsCommandes } = req.body;
+
+        const id_responsable = await getIdResponsable(id_consommateur);
+
 
         const bonCommandeInterne = await BonCommandeInterne.create({
             id_consommateur,
             number,
-            date,
-            validation
+            date
         });
+ 
+        sendNotificationToResponsable(bonCommandeInterne,id_responsable);
 
-        // Create entries in produitscommandeinterne table
         for (const produitCommande of produitsCommandes) {
             await ProduitsCommandeInterne.create({
                 id_produit: produitCommande.id_produit,
                 id_boncommandeinterne: bonCommandeInterne.id,
-                orderedquantity: produitCommande.orderedquantity,
-                accordedquantity: produitCommande.accordedquantity
+                orderedquantity: produitCommande.orderedquantity
             });
         }
 
@@ -412,25 +435,21 @@ const createBonCommandeInterne = async (req, res) => {
 
 const getcommandinternedetails = async (req, res) => {
     try {
-        // Extract the ID of the internal command from request parameters
+
         const { id } = req.params;
 
-        // Find the internal command by its ID
         const command = await BonCommandeInterne.findByPk(id);
 
-        // If the internal command is not found, return a 404 error
         if (!command) {
             return res.status(404).json({ message: 'Internal command not found' });
         }
 
-        // Find associated product orders for the internal command
         const productOrders = await ProduitsCommandeInterne.findAll({
             where: { id_boncommandeinterne: id }
         });
 
-        // Iterate through each product order and fetch product details
         const productDetails = await Promise.all(productOrders.map(async (order) => {
-            // Find product details by product ID
+
             const product = await Produit.findByPk(order.id_produit);
             if (product) {
                 return {
@@ -443,10 +462,9 @@ const getcommandinternedetails = async (req, res) => {
             return null;
         }));
 
-        // Return the internal command details along with associated product details
         res.status(200).json({ command, products: productDetails });
     } catch (error) {
-        // Handle any errors that occur during the process
+
         console.error('Failed to get internal command details:', error);
         res.status(500).json({ message: 'Failed to get internal command details', error: error.message });
     }
@@ -792,6 +810,53 @@ const deleteBonDechargeById = async (req, res) => {
     }
 }; 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,deleteBonDechargeById, getBonDechargeDetailsById, getAllBonDecharges,receiveBorrowedProducts};
+
+const validateBonCommandeInterne = async (req, res) => {
+    try {
+        const { id_boncommandeinterne } = req.params;
+        const { products } = req.body;
+
+        const bonCommandeInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
+
+        if (!bonCommandeInterne) {
+            return res.status(404).json({ error: "Bon de commande interne not found" });
+        }
+
+        for (const product of products) {
+
+            const existingProduct = await ProduitsCommandeInterne.findOne({
+                where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
+            });
+            if (!existingProduct) {
+                return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
+            }
+
+            existingProduct.accordedquantity = product.accordedquantity;
+            await existingProduct.save();
+        }
+
+        bonCommandeInterne.validation++;
+        await bonCommandeInterne.save();
+
+        // const magasinierUsers = await Magasinier.findAll();
+        // const id_magasiniers = magasinierUsers.map(magasinier => magasinier.user_id);
+
+        // const directeurUsers = await Director.findAll();
+        // const id_directeurs = directeurUsers.map(director => director.user_id);
+
+        if (bonCommandeInterne.validation === 1) {
+            sendNotificationToDirecteur(bonCommandeInterne, 34);
+        } else if (bonCommandeInterne.validation === 2) {
+            sendNotificationToMagasinier(bonCommandeInterne, 136);
+        }
+
+        res.status(200).json({ message: "Bon de commande interne validated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,deleteBonDechargeById, getBonDechargeDetailsById, getAllBonDecharges,receiveBorrowedProducts, validateBonCommandeInterne};
 
 

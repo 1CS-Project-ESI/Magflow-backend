@@ -1,7 +1,7 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
 
-import { createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById} from "../controllers/bonsController.js";
+import { createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne} from "../controllers/bonsController.js";
 
 const router = express.Router();
 import cors from "cors";
@@ -26,11 +26,11 @@ router.get('/consumer-commands/:id',getConsommateurCommands);
 router.get('/allcommandsinterne',getAllCommandsInterne);
 router.get('/allbonsortie',getAllBonSorties);
 router.get('/allcomandsforresposnable/:id_structureresponsable',getBonCommandInterneForStructureResponsable)
-
 router.post('/createBonDecharge/:id_magasinier',createBonDecharge);  
 router.get('/getBonDechargeDetailsById/:id_bondecharge',getBonDechargeDetailsById);
 router.delete('/deleteBonDechargeById/:id_bondecharge',deleteBonDechargeById);
 router.post('/receiveBonDecharge/:id_bondecharge',receiveBorrowedProducts);
 router.get('/getAllBonDecharges',getAllBonDecharges);
+router.patch('/validation/:id_boncommandeinterne',validateBonCommandeInterne);
 
 export default router;

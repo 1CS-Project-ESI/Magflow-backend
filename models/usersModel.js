@@ -190,11 +190,7 @@ const StructureResponsable = sequelize.define('structureresponsable', {
   tableName: 'structureresponsable',
   timestamps: false,
 });
-// sequelize.sync({ alter: true })
-//   .then(() => {
-//     console.log('Database synchronized');
-//   })
-//   .catch((error) => {
-//     console.error('Error synchronizing database:', error)});
+
+
 
 export  {User,Admin,Magasinier,Director,Consumer,AgentServiceAchat,StructureResponsable,sequelize};

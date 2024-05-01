@@ -8,8 +8,11 @@ import strctureRoutes from "./routes/structureRoutes.js" ;
 import productRoutes from "./routes/productRoutes.js";
 import bonsRoute from "./routes/bonsRoute.js";
 import fournisseurRoutes  from "./routes/fournisseurRoutes.js";
+import pdfRoutes from "./routes/pdfRoutes.js";
 import bodyParser from "body-parser";
 import session from 'express-session';
+import notificationsRoutes from "./routes/notificationsRoutes.js"
+
 
 
 
@@ -37,7 +40,9 @@ app.use("/api/users", usersRoutes);
 app.use("/api/structures", strctureRoutes);
 app.use("/api/store", productRoutes);
 app.use("/api/bons",bonsRoute);
-app.use("/api/fournisseur",fournisseurRoutes)
+app.use("/api/fournisseur",fournisseurRoutes);
+app.use("/api/pdf",pdfRoutes);
+app.use("/api/notifications",notificationsRoutes)
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`);

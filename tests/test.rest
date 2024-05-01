@@ -296,15 +296,50 @@ GET  http://localhost:4000/api/bons/getAllBonDecharges
 
 ### 
 GET  http://localhost:4000/api/bons/getBonDechargeDetailsById/14
-Content-Type: application/json
-###
 
+
+###
 DELETE http://localhost:4000/api/bons/deleteBonDechargeById/18
 
+
+### 
+POST : http://localhost:4000/api/bons/create-bon-commande-interne/143
+{
+  "number": 80,
+  "date": "2024-05-01",
+  "produitsCommandes": [
+    {
+      "id_produit": 1,
+      "orderedquantity": 10,
+      "accordedquantity": 10
+    }
+  ]
+}
+
+
+###
+GET: http://localhost:4000/api/notifications/responsable
+
+###
+GET: http://localhost:4000/api/notifications/magasinier
+
+###
+GET : http://localhost:4000/api/notifications/directeur
+
 ####
+PATCH : http://localhost:4000/api/bons/validation/21
+{
+  "products": [
+    {
+      "id_produit": 1,
+      "accordedquantity": 990
+    }
+  ]
+}
+
 
 POST http://localhost:4000/api/bons/create-bon-sortie/13
-Content-Type: application/json
+
 
 {
   "id_magasinier": 136,
@@ -324,5 +359,3 @@ Content-Type: application/json
 }
 
 
-
-### 

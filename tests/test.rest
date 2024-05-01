@@ -17,13 +17,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6M
 Content-Type: application/json
 
 {
-"firstname":"fatima",
-"lastname":"fatima",
-"email":"f.bencharef@esi-sba.dz",
+"firstname":"structureresponsable",
+"lastname":"structureresponsable",
+"email":"structureresponsable@esi-sba.dz",
 "phone":"07777",
-"password" : "fatima",
+"password" : "structureresponsable",
 "isactive":true,
-"role" : "admin"
+"role" : "structureresponsable",
+"id_structure":8
 }
 
 ### 
@@ -234,18 +235,45 @@ DELETE  http://localhost:4000/api/fournisseur/delete/pc@email.com
 
 ###
 
-POST http://localhost:4000/api/bons/createBonDecharge/140
+GET http://localhost:4000/api/bons/allcomandsforresposnable/103
+###
+GET http://localhost:4000/api/bons/getAllBonCommandInterneFFordirectorMagazinier
+Content-Type: application/json
+
+{
+  "role":"magazinier"
+}
+### create bon commane interne type =  decharge 
+
+
+
+### create bon commane interne type = intene  
+POST http://localhost:4000/api/bons/create-bon-commande-interne/143
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
+Content-Type: application/json
+
+{ 
+  "number": "123",
+  "date": "2024-04-29",
+  "typecommande": "Commande Decharges",
+  "produitsCommandes": [
+    { "id_produit": 5, "orderedquantity": 1 },
+    { "id_produit": 4, "orderedquantity": 1 }
+  ]
+}
+
+###
+POST http://localhost:4000/api/bons/createBonDecharge/16
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6MTcxMTU0NDA3NywiZXhwIjoxNzExNjMwNDc3fQ.B4rREhfTgrBGqs7TIWpbprCXS1yQgCD-ezJJd6zBND4
 Content-Type: application/json
 
 {
   "date": "2024-04-29",
   "description": "Borrowing some products for a project",
-  "id_consommateur" :"119",
   "id_magasinier":"140",
   "produitsdecharges": [
-    { "id": 5, "quantity": 10 },
-    { "id": 4, "quantity": 10 }
+    { "id": 5, "quantity": 1 },
+    { "id": 4, "quantity": 1}
   ]
 }
 
@@ -275,7 +303,7 @@ DELETE http://localhost:4000/api/bons/deleteBonDechargeById/18
 
 ####
 
-POST http://localhost:4000/api/bons/create-bon-sortie/:id_boncommandeinterne
+POST http://localhost:4000/api/bons/create-bon-sortie/
 
 {
   "id_magasinier": 136,

@@ -379,29 +379,30 @@ const getCommandDetails = async (req, res) => {
     }
 };
 
-
+//// interne 
 const createBonCommandeInterne = async (req, res) => {
     try {
         const {id_consommateur} = req.params;
-        const {  number, date, validation, produitsCommandes ,typecommande} = req.body;
+        const {  number, date, produitsCommandes ,typecommande} = req.body;
 
         const bonCommandeInterne = await BonCommandeInterne.create({
             id_consommateur,
             number,
             date,
-            validation,
             typecommande
         });
 
 
 
         // Create entries in produitscommandeinterne table
-        for (const produitCommande of produitsCommandes) {
+
+        // switch of type of bon decommande  interne 
+        for (const produitCommande of produitsCommandes) {  
             await ProduitsCommandeInterne.create({
                 id_produit: produitCommande.id_produit,
                 id_boncommandeinterne: bonCommandeInterne.id,
                 orderedquantity: produitCommande.orderedquantity,
-                accordedquantity: produitCommande.accordedquantity
+                accordedquantity: produitCommande.accordedquantity || null
             });
         }
 
@@ -467,7 +468,7 @@ const createBonSortie = async (req, res) => {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
 
-        if(bonCommandeInterne.typecommande!='commandeinterne'){
+        if(bonCommandeInterne.typecommande!='Commande Interne'){
             return res.status(400).json({ message: 'its bon decharge' });
         }
 
@@ -523,6 +524,9 @@ const createBonSortie = async (req, res) => {
         
 
         // All verifications passed, create bonsortie and produitsServie entries
+        if(bonCommandeInterne.validation!=3){
+            return res.status(400).json({ message: 'its not validated yet ' });
+        } 
         const bonSortie = await BonSortie.create({
             id_boncommandeinterne,
             id_magasinier,
@@ -607,7 +611,9 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
 
         // Get all boncommandinterne made by those consumers
         const bonCommandInterne = await BonCommandeInterne.findAll({
-            where: { id_consommateur: consumers.map(consumer => consumer.user_id) }
+            where: { id_consommateur: consumers.map(consumer => consumer.user_id),
+            validation: 0 }
+            
         });
 
         return res.status(200).json(bonCommandInterne);
@@ -617,72 +623,113 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
     }
 };
 
+
+const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
+    try {
+        const { role } = req.body; // Assuming user role is available in req.user
+        let validationStatus;
+
+        // Check user role and set validation status accordingly
+        switch (role) {
+            case 'director':
+                validationStatus = 1;
+                break;
+            case 'magazinier':
+                validationStatus = 2;
+                break;
+            default:
+                return res.status(403).json({ message: 'User role not authorized' });
+        }
+
+        // Retrieve bon de command interne based on role and validation status
+        const bonCommandInterne = await BonCommandeInterne.findAll({
+            where: { validation: validationStatus }
+        });
+
+        return res.status(200).json(bonCommandInterne);
+    } catch (error) {
+        console.error('Failed to get bon command interne:', error);
+        return res.status(500).json({ message: 'Failed to get bon command interne', error: error.message });
+    }
+};
+
+
+
+
+
 const createBonDecharge = async (req, res) => {
-    let transaction;
+    // let transaction;
     try {
         // Validate input data
-        const { date, description, produitsdecharges, id_consommateur } = req.body;
-        const { id_magasinier } = req.params;
+        const { date, description, produitsdecharges ,id_magasinier } = req.body; // problm if id_consumer 
+        const {  id_boncommandeinterne} = req.params;
 
-        // Start a transaction
-       // transaction = await Sequelize.transaction();
-
+        const bonCommandeInterne = await BonCommandeInterne.findOne({
+            where: { id: id_boncommandeinterne }
+        });
         // Create borrowing receipt entry
+        if(bonCommandeInterne.typecommande!='Commande Decharges'){
+            return res.status(400).json({ message: 'its bon internee' });
+        }
+        if(bonCommandeInterne.validation!=3){
+            return res.status(400).json({ message: 'its not validated yet ' });
+        } 
+
+        const id_consommateur = bonCommandeInterne.id_consommateur;
+
+
+        // retrv id consumer from 
         const bonDecharge = await BonDecharge.create({
             id_magasinier: id_magasinier,
             id_consommateur: id_consommateur,
             date: date,
             description: description
-        }, ); // ,{ transaction })
+        }, ); 
 
-        // Handle many-to-many relationship with ProduitsDecharges table
+        
         for (const produit of produitsdecharges) {
-            // Get the product details
-            const product = await Produit.findByPk(produit.id, { transaction });
+           
+            const product = await Produit.findByPk(produit.id);
 
             if (!product) {
-                // If the product does not exist, rollback the transaction
-                // await transaction.rollback();
+               
                 console.error(`Product with ID ${produit.id} not found.`);
                 return res.status(404).json({ success: false, message: `Product with ID ${produit.id} not found.` });
             }
 
-            // Calculate the available quantity (quantity - seuil)
-            const availableQuantity = Math.max(0, product.quantity - product.seuil); // product.quantity is the  product quantity avaible in the stock 
+            
+            const availableQuantity = Math.max(0, product.quantity - product.seuil); 
 
-            // Calculate the accorded quantity based on user-requested quantity and available quantity
-            const accordedQuantity = Math.min(produit.quantity, availableQuantity); // produit.quantity is the quatntity the user wants to borrow 
+            
+            const accordedQuantity = Math.min(produit.quantity, availableQuantity);
 
-            // Create ProduitsDecharges entry with the accorded quantity
+            
             await ProduitsDecharges.create({
+                
                 id_bondecharge: bonDecharge.id,
                 id_produit: produit.id,
                 dechargedquantity: accordedQuantity
-            }, ); // { transaction }
+            }, ); 
 
-            // Subtract the accorded quantity from the product's quantity
             await Produit.update({
                 quantity: product.quantity - accordedQuantity
             }, {
                 where: { id: produit.id },
-                // transaction
+               
             });
 
             if (product.quantity <= product.seuil) {
-                // Send alert/notification
-                // Example: You can use a notification service like email, SMS, or push notification
+                
                 console.log(`Alert: Quantity of product '${product.name}' (${product.quantity}) is below the threshold (${product.seuil}).`);
             }
         }
 
-        // Commit the transaction
-        // await transaction.commit();
+      
 
         res.status(201).json({ success: true, bonDecharge });
     } catch (error) {
         console.error('Error creating borrowing receipt:', error);
-        // Rollback the transaction if an error occurs
-        // if (transaction) await transaction.rollback();
+        
         res.status(500).json({ success: false, message: "Error creating borrowing receipt", error: error.message });
     }
 };
@@ -736,8 +783,7 @@ const receiveBorrowedProducts = async (req, res) => {
             await bonDecharge.save();
         }
 
-        // Update the borrowing receipt status to indicate that the products were received
-        
+      
 
         return res.status(200).json({ success: true, message: 'Borrowed products received successfully' });
     } catch (error) {
@@ -763,7 +809,7 @@ const getBonDechargeDetailsById = async (req, res) => {
         const { id_bondecharge } = req.params;
 
 
-        // Fetch the borrowing receipt by ID
+       
         const bonDecharge = await BonDecharge.findByPk(id_bondecharge);
         console.log(bonDecharge);
         if (!bonDecharge) {
@@ -812,6 +858,56 @@ const deleteBonDechargeById = async (req, res) => {
     }
 }; 
 
-export { createBonCommande , createBonRepection, getAllCommands,getAllReception, getAllProductsOfCommand,getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber,getCommandDetails, createBonCommandeInterne , getcommandinternedetails , getConsommateurCommands, getAllCommandsInterne , createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,deleteBonDechargeById, getBonDechargeDetailsById, getAllBonDecharges,receiveBorrowedProducts};
+
+// const validateBonCommandInterne = async (req, res) => {
+//     try {
+//         const { id_boncommandeinterne } = req.params;
+//         const { role } = req.body;
+
+//         // Find the bon de commande interne by its ID
+//         const bonCommandInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
+
+//         if (!bonCommandInterne) {
+//             return res.status(404).json({ message: 'Bon de commande interne not found' });
+//         }
+
+//         // Perform validation based on user role and current validation value
+//         switch (role) {
+//             case 'responsable_structure':
+//                 if (bonCommandInterne.validation === 0) {
+//                     bonCommandInterne.validation += 1;
+//                 } else {
+//                     return res.status(400).json({ message: 'Validation not allowed for this user role or current state' });
+//                 }
+//                 break;
+//             case 'director':
+//                 if (bonCommandInterne.validation === 1) {
+//                     bonCommandInterne.validation += 1;
+//                 } else {
+//                     return res.status(400).json({ message: 'Validation not allowed for this user role or current state' });
+//                 }
+//                 break;
+//             case 'magazinier':
+//                 if (bonCommandInterne.validation === 2) {
+//                     bonCommandInterne.validation += 1;
+//                 } else {
+//                     return res.status(400).json({ message: 'Validation not allowed for this user role or current state' });
+//                 }
+//                 break;
+//             default:
+//                 return res.status(403).json({ message: 'User role not authorized to perform validation' });
+//         }
+
+//         // Save the updated bon de commande interne
+//         await bonCommandInterne.save();
+
+//         return res.status(200).json({ message: 'Validation performed successfully', bonCommandInterne });
+//     } catch (error) {
+//         console.error('Error performing validation:', error);
+//         return res.status(500).json({ message: 'Error performing validation', error: error.message });
+//     }
+// };
 
 
+
+export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById}

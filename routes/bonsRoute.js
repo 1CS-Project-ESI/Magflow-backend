@@ -1,7 +1,7 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
 
-import { createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById} from "../controllers/bonsController.js";
+import {  getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById} from "../controllers/bonsController.js";
 
 const router = express.Router();
 import cors from "cors";
@@ -22,12 +22,17 @@ router.get('/commandinterne/details/:id',getcommandinternedetails);
 router.get('/remaining-products/:CommandId', RemainingProducts);
 router.get('/getcommandproductswithnumber/:number',getAllProductsOfCommandWithNumber);
 router.get('/command/details/:id',getCommandDetails);
-router.get('/consumer-commands/:id',getConsommateurCommands);
-router.get('/allcommandsinterne',getAllCommandsInterne);
+router.get('/consumer-commands/:id',getConsommateurCommands); 
+// router.get('/allcommandsinterne',getAllCommandsInterne);
 router.get('/allbonsortie',getAllBonSorties);
-router.get('/allcomandsforresposnable/:id_structureresponsable',getBonCommandInterneForStructureResponsable)
 
-router.post('/createBonDecharge/:id_magasinier',createBonDecharge);  
+router.get('/allcomandsforresposnable/:id_structureresponsable',getBonCommandInterneForStructureResponsable);// get product of the responsale struct and the validation = 0 
+router.get('/getAllBonCommandInterneFFordirectorMagazinier',getAllBonCommandInterneFFordirectorMagazinier);
+// router.put('/validate/:id_boncommandeinterne', validateBonCommandInterne);
+
+
+
+router.post('/createBonDecharge/:id_boncommandeinterne',createBonDecharge);  
 router.get('/getBonDechargeDetailsById/:id_bondecharge',getBonDechargeDetailsById);
 router.delete('/deleteBonDechargeById/:id_bondecharge',deleteBonDechargeById);
 router.post('/receiveBonDecharge/:id_bondecharge',receiveBorrowedProducts);

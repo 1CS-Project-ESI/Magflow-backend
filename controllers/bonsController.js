@@ -868,7 +868,7 @@ const deleteBonDechargeById = async (req, res) => {
 
 const validateBonCommandeInterne = async (req, res) => {
     try {
-        const { id_boncommandeinterne } = req.params;
+        const { id_boncommandeinterne } = req.query;
         const { products } = req.body;
 
         const bonCommandeInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);

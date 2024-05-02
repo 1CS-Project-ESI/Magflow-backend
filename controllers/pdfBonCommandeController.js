@@ -7,7 +7,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import htmlPdf from 'html-pdf';
 
-import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes} from '../models/bonsModel.js';
+import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes , BonReception , ProduitsDelivres} from '../models/bonsModel.js';
 import { Consumer, User ,AgentServiceAchat} from '../models/usersModel.js';
 import { Fournisseur } from '../models/fournisseurModel.js';
 import { Produit } from '../models/productsModel.js';
@@ -248,5 +248,74 @@ const generateBonCommandePDF = async (req, res) => {
 };
 
 
+const generateBonReceptionPDF = async (req, res) => {
+    try {
+        const { bonReceptionId } = req.params;
 
-export { generatePDF, generateBonSortiePDF , generateBonCommandePDF}
+        // Fetch Bon Reception details
+        const bonReception = await BonReception.findByPk(bonReceptionId);
+        if (!bonReception) {
+            throw new Error('Bon Reception not found');
+        }
+
+        // Fetch Bon Commande details using Bon Reception's reference
+        const bonCommande = await BonCommande.findByPk(bonReception.id_boncommande);
+        if (!bonCommande) {
+            throw new Error('Bon Commande not found for Bon Reception');
+        }
+
+        // Fetch Fournisseur details using Bon Commande's reference
+        const fournisseur = await Fournisseur.findByPk(bonCommande.id_fournisseur);
+        if (!fournisseur) {
+            throw new Error('Fournisseur not found for Bon Commande');
+        }
+
+        // Fetch products delivered details
+        const produitsDelivres = await ProduitsDelivres.findAll({
+            where: { id_bonreception: bonReceptionId }
+        });
+        if (!produitsDelivres || produitsDelivres.length === 0) {
+            throw new Error('No products delivered found');
+        }
+
+        // Prepare products details
+        const produitsDetails = await Promise.all(produitsDelivres.map(async (produitDelivre) => {
+            const produit = await Produit.findByPk(produitDelivre.id_produit);
+            return {
+                produitName: produit ? produit.name : 'N/A',
+                receivedQuantity: produitDelivre.receivedquantity
+            };
+        }));
+
+        // Render HTML template with EJS
+        const templatePath = path.resolve(fileURLToPath(import.meta.url), '../bonReceptionTemplate.ejs');
+        const templateContent = fs.readFileSync(templatePath, 'utf-8');
+        const htmlContent = ejs.render(templateContent, {
+            bonCommandeDate: bonCommande.orderdate,
+            bonReceptionDate: bonReception.deliverydate,
+            bonReceptionNumber: bonReception.number,
+            bonCommandeNumber: bonCommande.number,
+            fournisseurName: fournisseur.name,
+            produitsDetails
+        });
+
+        // Define PDF options
+        const pdfOptions = { format: 'A4' };
+
+        // Generate PDF
+        const pdfPath = `bonReception_${bonReceptionId}.pdf`;
+        htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+            if (err) {
+                console.error('Failed to generate Bon Reception PDF:', err);
+                return res.status(500).json({ error: 'Failed to generate Bon Reception PDF' });
+            }
+            console.log('Bon Reception PDF generated successfully:', response);
+            return res.status(200).json({ pdfPath });
+        });
+    } catch (error) {
+        console.error('Error generating Bon Reception PDF:', error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF}

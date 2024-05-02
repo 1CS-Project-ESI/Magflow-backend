@@ -73,6 +73,14 @@ const BonReception = sequelize.define('bonreception', {
             key: 'user_id'
         }
     },
+    id_boncommande: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'BonCommande', 
+            key: 'id'
+        }
+    },
     number: {
         type: DataTypes.INTEGER,
         allowNull: false,

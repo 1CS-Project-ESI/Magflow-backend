@@ -17,7 +17,7 @@ const Chapitre = sequelize.define('chapitre', {
     },
     code: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       unique:true
     },
     id_agentserviceachat: {
@@ -41,7 +41,7 @@ const Chapitre = sequelize.define('chapitre', {
     },
     chapter_id: {
       type: DataTypes.INTEGER, // This is the foreign key attribute
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'Chapitre', // This is the target model
         key: 'id' // This is the target key attribute

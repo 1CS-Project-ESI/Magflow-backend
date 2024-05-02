@@ -409,7 +409,7 @@ const createBonCommandeInterne = async (req, res) => {
 
         const bonCommandeInterne = await BonCommandeInterne.create({
             id_consommateur,
-            number,
+            number, // i have to geenerate it 
             date,
             typecommande
         });
@@ -457,6 +457,7 @@ const getcommandinternedetails = async (req, res) => {
                     characteristics: product.caracteristicsgit ,
                     orderedQuantity: order.orderedquantity,
                     accordedQuantity: order.accordedquantity
+
                 };
             }
             return null;
@@ -650,7 +651,7 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
                 validationStatus = 1;
                 break;
             case 'magazinier':
-                validationStatus = 2;
+                validationStatus === 2 || validationStatus === 3 ;
                 break;
             default:
                 return res.status(403).json({ message: 'User role not authorized' });

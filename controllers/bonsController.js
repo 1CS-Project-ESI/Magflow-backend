@@ -885,41 +885,53 @@ const validateBonCommandeInterne = async (req, res) => {
             return res.status(404).json({ error: "Bon de commande interne not found" });
         }
 
-        for (const product of products) {
+        if (!products || Object.keys(products).length === 0) {
+            bonCommandeInterne.validation++;
+            await bonCommandeInterne.save();
 
-            const existingProduct = await ProduitsCommandeInterne.findOne({
-                where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
-            });
-            if (!existingProduct) {
-                return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
+            if (bonCommandeInterne.validation === 1) {
+                sendNotificationToDirecteur(bonCommandeInterne, 34);
+            } else if (bonCommandeInterne.validation === 2) {
+                sendNotificationToMagasinier(bonCommandeInterne, 136);
             }
 
-            existingProduct.accordedquantity = product.accordedquantity;
-            await existingProduct.save();
+            return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantites" });
+        } else {
+            for (const product of products) {
+                const existingProduct = await ProduitsCommandeInterne.findOne({
+                    where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
+                });
+
+                if (!existingProduct) {
+                    return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
+                }
+
+                existingProduct.accordedquantity = product.accordedquantity;
+                await existingProduct.save();
+            }
+
+            bonCommandeInterne.validation++;
+            await bonCommandeInterne.save();
+
+            // const magasinierUsers = await Magasinier.findAll();
+            // const id_magasiniers = magasinierUsers.map(magasinier => magasinier.user_id);
+                
+            // const directeurUsers = await Director.findAll();
+            // const id_directeurs = directeurUsers.map(director => director.user_id);
+
+            if (bonCommandeInterne.validation === 1) {
+                sendNotificationToDirecteur(bonCommandeInterne, 34);
+            } else if (bonCommandeInterne.validation === 2) {
+                sendNotificationToMagasinier(bonCommandeInterne, 136);
+            }
+
+            res.status(200).json({ message: "Bon de commande interne validated successfully" });
         }
-
-        bonCommandeInterne.validation++;
-        await bonCommandeInterne.save();
-
-        // const magasinierUsers = await Magasinier.findAll();
-        // const id_magasiniers = magasinierUsers.map(magasinier => magasinier.user_id);
-
-        // const directeurUsers = await Director.findAll();
-        // const id_directeurs = directeurUsers.map(director => director.user_id);
-
-        if (bonCommandeInterne.validation === 1) {
-            sendNotificationToDirecteur(bonCommandeInterne, 34);
-        } else if (bonCommandeInterne.validation === 2) {
-            sendNotificationToMagasinier(bonCommandeInterne, 136);
-        }
-
-        res.status(200).json({ message: "Bon de commande interne validated successfully" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
-
 
 
 export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne}

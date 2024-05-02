@@ -318,13 +318,13 @@ POST : http://localhost:4000/api/bons/create-bon-commande-interne/143
 
 
 ###
-GET: http://localhost:4000/api/notifications/responsable
+GET: http://localhost:4000/api/notifications/responsable/145
 
 ###
-GET: http://localhost:4000/api/notifications/magasinier
+GET: http://localhost:4000/api/notifications/magasinier/136
 
 ###
-GET : http://localhost:4000/api/notifications/directeur
+GET : http://localhost:4000/api/notifications/directeur/34
 
 ####
 PATCH : http://localhost:4000/api/bons/validation/21

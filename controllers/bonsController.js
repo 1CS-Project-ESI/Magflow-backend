@@ -8,18 +8,14 @@ import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotific
 
 const createBonCommande = async (req, res) => {
     try {
-        // Step 1: Get id_agentserviceachat and id_fournisseur from params
-        const { id_agentserviceachat, id_fournisseur } = req.params;
-        
-        // Step 2: Get number, orderdate, status, and product details from body
-        const { number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
+        const { id_agentserviceachat} = req.params;
 
-        // Step 3: Initialize total_ht, total_ttc, and total_tva to 0
+        const { id_fournisseur, number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
+
         let total_ht = 0;
         let tva = 0;
         let total_ttc = 0;
 
-        // Create a new instance of BonCommande
         const newBonCommande = await BonCommande.create({
             id_agentserviceachat,
             id_fournisseur,
@@ -31,12 +27,10 @@ const createBonCommande = async (req, res) => {
             total_ht
         });
 
-        // Step 4: Iterate through productsOrdered array and calculate total_ht
         for (const product of productsOrdered) {
             total_ht += product.ordered_quantity * product.price;
         }
 
-        // Step 5 & 6: Calculate total_ttc and total_tva
         for (const product of productsOrdered) {
             const { productId } = product;
             const produit = await Produit.findByPk(productId);
@@ -53,7 +47,6 @@ const createBonCommande = async (req, res) => {
                 return res.status(404).json({ message: `Article not found for product ID ${productId}` });
             }
 
-            // Find article by ID
             const article = await Article.findByPk(produitArticle.id_article);
 
             if (!article) {
@@ -63,7 +56,6 @@ const createBonCommande = async (req, res) => {
             const tva = article.tva;
             total_ttc += (product.price * (1 + tva / 100)) * product.ordered_quantity;
 
-            // Step 7: Add a line for each product in the produitscommandes table
             await ProduitsCommandes.create({
                 id_produit: product.productId,
                 id_boncommande: newBonCommande.id,
@@ -72,7 +64,6 @@ const createBonCommande = async (req, res) => {
             });
         }
 
-        // Step 8: Update total_ht, tva, and total_ttc in the BonCommande table
         await newBonCommande.update({
             total_ht,
             tva: total_ttc - total_ht,
@@ -409,7 +400,7 @@ const createBonCommandeInterne = async (req, res) => {
 
         const bonCommandeInterne = await BonCommandeInterne.create({
             id_consommateur,
-            number,
+            number, // i have to geenerate it 
             date,
             typecommande
         });
@@ -457,6 +448,7 @@ const getcommandinternedetails = async (req, res) => {
                     characteristics: product.caracteristicsgit ,
                     orderedQuantity: order.orderedquantity,
                     accordedQuantity: order.accordedquantity
+
                 };
             }
             return null;
@@ -650,7 +642,7 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
                 validationStatus = 1;
                 break;
             case 'magazinier':
-                validationStatus = 2;
+                validationStatus === 2 || validationStatus === 3 ;
                 break;
             default:
                 return res.status(403).json({ message: 'User role not authorized' });
@@ -885,41 +877,53 @@ const validateBonCommandeInterne = async (req, res) => {
             return res.status(404).json({ error: "Bon de commande interne not found" });
         }
 
-        for (const product of products) {
+        if (!products || Object.keys(products).length === 0) {
+            bonCommandeInterne.validation++;
+            await bonCommandeInterne.save();
 
-            const existingProduct = await ProduitsCommandeInterne.findOne({
-                where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
-            });
-            if (!existingProduct) {
-                return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
+            if (bonCommandeInterne.validation === 1) {
+                sendNotificationToDirecteur(bonCommandeInterne, 34);
+            } else if (bonCommandeInterne.validation === 2) {
+                sendNotificationToMagasinier(bonCommandeInterne, 136);
             }
 
-            existingProduct.accordedquantity = product.accordedquantity;
-            await existingProduct.save();
+            return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantites" });
+        } else {
+            for (const product of products) {
+                const existingProduct = await ProduitsCommandeInterne.findOne({
+                    where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
+                });
+
+                if (!existingProduct) {
+                    return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
+                }
+
+                existingProduct.accordedquantity = product.accordedquantity;
+                await existingProduct.save();
+            }
+
+            bonCommandeInterne.validation++;
+            await bonCommandeInterne.save();
+
+            // const magasinierUsers = await Magasinier.findAll();
+            // const id_magasiniers = magasinierUsers.map(magasinier => magasinier.user_id);
+                
+            // const directeurUsers = await Director.findAll();
+            // const id_directeurs = directeurUsers.map(director => director.user_id);
+
+            if (bonCommandeInterne.validation === 1) {
+                sendNotificationToDirecteur(bonCommandeInterne, 34);
+            } else if (bonCommandeInterne.validation === 2) {
+                sendNotificationToMagasinier(bonCommandeInterne, 136);
+            }
+
+            res.status(200).json({ message: "Bon de commande interne validated successfully" });
         }
-
-        bonCommandeInterne.validation++;
-        await bonCommandeInterne.save();
-
-        // const magasinierUsers = await Magasinier.findAll();
-        // const id_magasiniers = magasinierUsers.map(magasinier => magasinier.user_id);
-
-        // const directeurUsers = await Director.findAll();
-        // const id_directeurs = directeurUsers.map(director => director.user_id);
-
-        if (bonCommandeInterne.validation === 1) {
-            sendNotificationToDirecteur(bonCommandeInterne, 34);
-        } else if (bonCommandeInterne.validation === 2) {
-            sendNotificationToMagasinier(bonCommandeInterne, 136);
-        }
-
-        res.status(200).json({ message: "Bon de commande interne validated successfully" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
-
 
 
 export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne}

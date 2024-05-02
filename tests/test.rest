@@ -3,8 +3,8 @@ POST http://localhost:4000/api/auth/login
 Content-Type: application/json
 
 {
- "email": "f.bencharef@esi-sba.dz",
- "password": "fatima"
+ "email": "consumer8@esi-sba.dz",
+ "password": "123"
 }
 ###
 GET http://localhost:4000/api/users/AllUsers
@@ -17,13 +17,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTcsImlhdCI6M
 Content-Type: application/json
 
 {
-"firstname":"structureresponsable",
-"lastname":"structureresponsable",
-"email":"structureresponsable@esi-sba.dz",
+"firstname":"service",
+"lastname":"m",
+"email":"service@esi-sba.dz",
 "phone":"07777",
-"password" : "structureresponsable",
+"password" : "123",
 "isactive":true,
-"role" : "structureresponsable",
+"role" : "agentserviceachat",
 "id_structure":8
 }
 
@@ -45,17 +45,17 @@ Content-Type: application/json
   "tauxtva" : 22
 }
 ###
-PUT  http://localhost:4000/api/users/f.bencharef@esi-sba.dz
+PUT  http://localhost:4000/api/users/consumerNOstruct@esi-sba.dz
 Content-Type: application/json
 
 {
-"firstname":"bencharef",
-"lastname":" bencharef",
-"email1":"f.bencharef@esi-sba.dz",
+"firstname":"adminModifLast1",
+"lastname":"4",
+"newEmail":"adminModifLast1@esi-sba.dz",
 "phone":"07777",
 "isactive":true,
-"password" : "fatima",
-"role" : "admin"
+"password" : "123",
+"role": "admin"
 }
 
 
@@ -318,13 +318,13 @@ POST : http://localhost:4000/api/bons/create-bon-commande-interne/143
 
 
 ###
-GET: http://localhost:4000/api/notifications/responsable
+GET: http://localhost:4000/api/notifications/responsable/145
 
 ###
-GET: http://localhost:4000/api/notifications/magasinier
+GET: http://localhost:4000/api/notifications/magasinier/136
 
 ###
-GET : http://localhost:4000/api/notifications/directeur
+GET : http://localhost:4000/api/notifications/directeur/34
 
 ####
 PATCH : http://localhost:4000/api/bons/validation/21
@@ -337,8 +337,9 @@ PATCH : http://localhost:4000/api/bons/validation/21
   ]
 }
 
-####
-POST http://localhost:4000/api/bons/create-bon-sortie/
+
+POST http://localhost:4000/api/bons/create-bon-sortie/13
+
 
 {
   "id_magasinier": 136,
@@ -347,12 +348,12 @@ POST http://localhost:4000/api/bons/create-bon-sortie/
   "date": "2024-04-25",
   "produitsServie": [
     {
-      "id_produit": 20,
-      "servedquantity": 5
+      "id_produit": 4,
+      "servedquantity": 2
     },
     {
-      "id_produit": 19,
-      "servedquantity": 5
+      "id_produit": 5,
+      "servedquantity": 2
     }
   ]
 }

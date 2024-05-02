@@ -7,12 +7,13 @@ const router = express.Router();
 import cors from "cors";
 router.use(cors());
 
-router.post('/create',addStructure);
-router.put('/addconsumer/:userId/:structureId',addConsumerStructure);
-router.get('/allstructures',getAllStructures);
-router.get('/responsable/:id',getResponsableStructure);
-router.get('/users/:id',getStructureUsers);
-router.delete('/delete/:structureId',deleteStructure)
+router.post('/create',addStructure); // for admin 
+router.delete('/delete/:structureId',deleteStructure) // for admin 
+router.put('/addconsumer/:userId/:structureId',addConsumerStructure); // for admin 
+router.get('/allstructures',getAllStructures);  // done for admin + not done ccreation of users 
+router.get('/responsable/:id',getResponsableStructure); // for deatials -> done 
+router.get('/users/:id',getStructureUsers);  // for admin -> done 
+
 
 
 export default router;

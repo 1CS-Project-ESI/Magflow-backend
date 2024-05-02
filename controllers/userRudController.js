@@ -80,7 +80,7 @@ const updateUserByEmail = asyncHandler(async (req, res) => {
     const { email } = req.params;
     const { firstname, lastname, newEmail ,password, phone, isactive, role } = req.body; 
     const user = await User.findOne({ where: { email } });
-    console.log(user);
+    console.log(" this is the user ",user);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -111,7 +111,7 @@ const updateUserByEmail = asyncHandler(async (req, res) => {
 
         // test if the role field exist in the Role table 
         const existingRole = await Role.findOne({ where: { name: role } });
-
+        console.log("this is the existingRole ",existingRole);
         if (!existingRole) {
           return res.status(400).json({ message: "Invalid role" });
         }

@@ -17,15 +17,15 @@ const Chapitre = sequelize.define('chapitre', {
     },
     code: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       unique:true
     },
     id_agentserviceachat: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'agentserviceachat', // Name of the referenced table
-        key: 'user_id' // Primary key in the referenced table
+        model: 'agentserviceachat', 
+        key: 'user_id'
       }
     }
   },{
@@ -40,11 +40,11 @@ const Chapitre = sequelize.define('chapitre', {
       autoIncrement: true
     },
     chapter_id: {
-      type: DataTypes.INTEGER, // This is the foreign key attribute
+      type: DataTypes.INTEGER, 
       allowNull: false,
       references: {
-        model: 'Chapitre', // This is the target model
-        key: 'id' // This is the target key attribute
+        model: 'Chapitre', 
+        key: 'id'
       }
     },
     name: {
@@ -56,7 +56,7 @@ const Chapitre = sequelize.define('chapitre', {
       allowNull: false
     },
     tva: {
-      type: DataTypes.DECIMAL(10, 2), // Define the price field with appropriate precision and scale
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     }
     
@@ -85,7 +85,7 @@ const Chapitre = sequelize.define('chapitre', {
     seuil: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 0 // Assuming default seuil is 0, adjust as needed
+        defaultValue: 0 
     }
 }, {
     timestamps: false,

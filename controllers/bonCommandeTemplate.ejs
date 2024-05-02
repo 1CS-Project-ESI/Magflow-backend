@@ -7,13 +7,13 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #ffff;
             padding: 20px;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: #fff;
+            background-color: #ffff;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -50,8 +50,13 @@
         <h1>Bon de Commande</h1>
         <p>Number: <%= bonCommande.number %></p>
         <p>Date: <%= bonCommande.orderdate %></p>
-        <p>Agent Service Achat: <%= user.firstname %></p>
+        <p>Agent Service Achat: <%= user.firstname , user.lastname %></p>
         <p>Fournisseur: <%= fournisseur.name %></p>
+        <p>email: <%= fournisseur.email %></p>
+        <p>phone: <%= fournisseur.phone %></p>
+        <p>rc: <%= fournisseur.rc %></p>
+        <p>rib: <%= fournisseur.rib %></p>
+        <p>nif: <%= fournisseur.nif %></p>
 
         <h2>Produits Commandés:</h2>
         <table>

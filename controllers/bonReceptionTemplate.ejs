@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon Reception</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="header">Bon Reception</h2>
+        <div>
+            <p><strong>Date of Bon Commande:</strong> <%= bonCommandeDate %></p>
+            <p><strong>Date of Bon Reception:</strong> <%= bonReceptionDate %></p>
+            <p><strong>Bon Reception Number:</strong> <%= bonReceptionNumber %></p>
+            <p><strong>Bon Commande Number:</strong> <%= bonCommandeNumber %></p>
+            <p><strong>Fournisseur Name:</strong> <%= fournisseurName %></p>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity Received</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% produitsDetails.forEach(produit => { %>
+                    <tr>
+                        <td><%= produit.produitName %></td>
+                        <td><%= produit.receivedQuantity %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

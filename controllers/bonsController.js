@@ -4,12 +4,12 @@ import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
 import { Structure } from "../models/structuresModel.js";
 import { Op, Sequelize, where } from 'sequelize';
 import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
+import {Fournisseur} from "../models/fournisseurModel.js";
 import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotificationToMagasinier } from "../services/notificationService.js";
 
 const createBonCommande = async (req, res) => {
     try {
-        const { id_agentserviceachat} = req.params;
-
+        const { id_agentserviceachat } = req.params;
         const { id_fournisseur, number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
 
         let total_ht = 0;
@@ -326,6 +326,51 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
     }
 };
 
+// const getCommandDetails = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         // Find the command by its number
+//         const command = await BonCommande.findOne({
+//             where: { id: id }
+//         });
+
+//         if (!command) {
+//             return res.status(404).json({ message: 'Command not found' });
+//         }
+
+//         // Find the associated products for the command
+//         // const products = await ProduitsDelivres.findAll({
+//         //     where: { id_boncommande: command.id }
+//         // });
+//         const productsData = await ProduitsCommandes.findAll({
+//             where: {
+//                 id_boncommande: id
+//             },
+//             attributes: ['id_produit', 'ordered_quantity'] // Only fetch necessary attributes
+//         });
+
+//         // Get details of each product using separate queries
+//         const products = [];
+//         for (const productData of productsData) {
+//             const { id_produit, orderedquantity } = productData;
+//             const product = await Produit.findByPk(id_produit, {
+//                 attributes: ['id', 'name', 'caracteristics'] // Fetch product details
+//             });
+//             if (product) {
+//                 products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
+//             }
+//         }
+
+//         // Optionally, you can fetch additional related data here
+
+//         res.status(200).json({ command, products });
+//     } catch (error) {
+//         console.error('Error fetching command details:', error);
+//         res.status(500).json({ message: 'Failed to fetch command details' });
+//     }
+// };
+
 const getCommandDetails = async (req, res) => {
     try {
         const { id } = req.params;
@@ -339,10 +384,9 @@ const getCommandDetails = async (req, res) => {
             return res.status(404).json({ message: 'Command not found' });
         }
 
+        console.log('ID Fournisseur:', command.id_fournisseur);
+
         // Find the associated products for the command
-        // const products = await ProduitsDelivres.findAll({
-        //     where: { id_boncommande: command.id }
-        // });
         const productsData = await ProduitsCommandes.findAll({
             where: {
                 id_boncommande: id
@@ -362,9 +406,19 @@ const getCommandDetails = async (req, res) => {
             }
         }
 
+        // Fetch supplier name
+        console.log("command.id_fournisseur:",command.id_fournisseur);
+        const supplier = await Fournisseur.findByPk(command.id_fournisseur, {
+            attributes: ['id', 'name'] // Fetch supplier name
+        });
+
+        if (!supplier) {
+            console.log('Fournisseur not found for ID:', command.id_fournisseur);
+        }
+
         // Optionally, you can fetch additional related data here
 
-        res.status(200).json({ command, products });
+        res.status(200).json({ command: { ...command.toJSON(), fournisseur_name: supplier ? supplier.name : null }, products });
     } catch (error) {
         console.error('Error fetching command details:', error);
         res.status(500).json({ message: 'Failed to fetch command details' });
@@ -444,6 +498,7 @@ const getcommandinternedetails = async (req, res) => {
             const product = await Produit.findByPk(order.id_produit);
             if (product) {
                 return {
+                    id_produit :product.id,
                     name: product.name,
                     characteristics: product.caracteristicsgit ,
                     orderedQuantity: order.orderedquantity,
@@ -633,7 +688,7 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
 
 const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
     try {
-        const { role } = req.body; // Assuming user role is available in req.user
+        const { role } = req.query; // Assuming user role is available in req.user
         let validationStatus;
 
         // Check user role and set validation status accordingly
@@ -641,8 +696,8 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
             case 'director':
                 validationStatus = 1;
                 break;
-            case 'magazinier':
-                validationStatus === 2 || validationStatus === 3 ;
+            case 'magasinier':
+                validationStatus =[2, 3];
                 break;
             default:
                 return res.status(403).json({ message: 'User role not authorized' });
@@ -868,8 +923,8 @@ const deleteBonDechargeById = async (req, res) => {
 
 const validateBonCommandeInterne = async (req, res) => {
     try {
-        const { id_boncommandeinterne } = req.query;
-        const { products } = req.body;
+        const { id_boncommandeinterne } = req.params;
+        const { products } = req.body; // id prodcut +acccordProduct 
 
         const bonCommandeInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
 

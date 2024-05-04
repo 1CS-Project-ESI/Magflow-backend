@@ -7,14 +7,18 @@ import { StructureResponsable , Consumer, Director, Magasinier } from "../models
 import {Fournisseur} from "../models/fournisseurModel.js";
 import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotificationToMagasinier } from "../services/notificationService.js";
 
+
+
+// send idArticle in the body of creation to retvieve its tva 
 const createBonCommande = async (req, res) => {
     try {
         const { id_agentserviceachat } = req.params;
-        const { id_fournisseur, number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
+        const { id_fournisseur, number, orderdate, status, productsOrdered ,orderspecifications, id_article } = req.body;
 
         let total_ht = 0;
         let tva = 0;
         let total_ttc = 0;
+
 
         const newBonCommande = await BonCommande.create({
             id_agentserviceachat,
@@ -47,7 +51,8 @@ const createBonCommande = async (req, res) => {
                 return res.status(404).json({ message: `Article not found for product ID ${productId}` });
             }
 
-            const article = await Article.findByPk(produitArticle.id_article);
+            // const article = await Article.findByPk(produitArticle.id_article);
+             const article = await Article.findByPk(Article.id_article);
 
             if (!article) {
                 return res.status(404).json({ message: `Article not found for product ID ${productId}` });
@@ -360,7 +365,12 @@ const getCommandDetails = async (req, res) => {
             }
         }
 
-        res.status(200).json({ command: { ...command.toJSON(), fournisseur_name: supplier ? supplier.name : null }, products });
+        const AllBonRecepttions = await BonReception.findAll({
+            where: { id_boncommande: id }, // Assuming `id_boncommande` links to the command
+          });
+        
+
+        res.status(200).json({ command: { ...command.toJSON(), fournisseur_name: supplier ? supplier.name : null }, products ,AllBonRecepttions ,tva:command.tva});
     } catch (error) {
         console.error('Error fetching command details:', error);
         res.status(500).json({ message: 'Failed to fetch command details' });

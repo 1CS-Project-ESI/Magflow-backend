@@ -326,56 +326,9 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
     }
 };
 
-// const getCommandDetails = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-
-//         // Find the command by its number
-//         const command = await BonCommande.findOne({
-//             where: { id: id }
-//         });
-
-//         if (!command) {
-//             return res.status(404).json({ message: 'Command not found' });
-//         }
-
-//         // Find the associated products for the command
-//         // const products = await ProduitsDelivres.findAll({
-//         //     where: { id_boncommande: command.id }
-//         // });
-//         const productsData = await ProduitsCommandes.findAll({
-//             where: {
-//                 id_boncommande: id
-//             },
-//             attributes: ['id_produit', 'ordered_quantity'] // Only fetch necessary attributes
-//         });
-
-//         // Get details of each product using separate queries
-//         const products = [];
-//         for (const productData of productsData) {
-//             const { id_produit, orderedquantity } = productData;
-//             const product = await Produit.findByPk(id_produit, {
-//                 attributes: ['id', 'name', 'caracteristics'] // Fetch product details
-//             });
-//             if (product) {
-//                 products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
-//             }
-//         }
-
-//         // Optionally, you can fetch additional related data here
-
-//         res.status(200).json({ command, products });
-//     } catch (error) {
-//         console.error('Error fetching command details:', error);
-//         res.status(500).json({ message: 'Failed to fetch command details' });
-//     }
-// };
-
 const getCommandDetails = async (req, res) => {
     try {
         const { id } = req.params;
-
-        // Find the command by its number
         const command = await BonCommande.findOne({
             where: { id: id }
         });
@@ -384,39 +337,28 @@ const getCommandDetails = async (req, res) => {
             return res.status(404).json({ message: 'Command not found' });
         }
 
-        console.log('ID Fournisseur:', command.id_fournisseur);
+        const supplier = await Fournisseur.findByPk(command.id_fournisseur, {
+            attributes: ['id', 'name'] 
+        });
 
-        // Find the associated products for the command
+        
         const productsData = await ProduitsCommandes.findAll({
             where: {
                 id_boncommande: id
             },
-            attributes: ['id_produit', 'ordered_quantity'] // Only fetch necessary attributes
+            attributes: ['id_produit', 'ordered_quantity', 'price'] 
         });
 
-        // Get details of each product using separate queries
         const products = [];
         for (const productData of productsData) {
-            const { id_produit, orderedquantity } = productData;
+            const { id_produit, ordered_quantity, price } = productData;
             const product = await Produit.findByPk(id_produit, {
-                attributes: ['id', 'name', 'caracteristics'] // Fetch product details
+                attributes: ['id', 'name'] 
             });
             if (product) {
-                products.push({ ...product.toJSON(), orderedquantity }); // Combine product details with ordered quantity
+                products.push({ ...product.toJSON(), ordered_quantity, price });
             }
         }
-
-        // Fetch supplier name
-        console.log("command.id_fournisseur:",command.id_fournisseur);
-        const supplier = await Fournisseur.findByPk(command.id_fournisseur, {
-            attributes: ['id', 'name'] // Fetch supplier name
-        });
-
-        if (!supplier) {
-            console.log('Fournisseur not found for ID:', command.id_fournisseur);
-        }
-
-        // Optionally, you can fetch additional related data here
 
         res.status(200).json({ command: { ...command.toJSON(), fournisseur_name: supplier ? supplier.name : null }, products });
     } catch (error) {
@@ -424,6 +366,8 @@ const getCommandDetails = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch command details' });
     }
 };
+
+
 
 
 const getIdResponsable = async (id_consommateur) => {

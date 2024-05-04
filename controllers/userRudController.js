@@ -65,14 +65,47 @@ const deleteUserByemail = asyncHandler(async (req, res) => {
 });
 
 
+// const getAllUsers = asyncHandler(async (req, res) => {
+//     try {
+//         const users = await User.findAll();
+//         const userRole = await UsersRoles.findOne({ where: { user_id: user.id } });
+//         const roleModelObj = await Role.findOne({ where: { id: userRole.role_id } });
+//         const roleName = roleModelObj.name; 
+
+//         return res.status(200).json({ users });
+//     } catch (error) {
+//         return res.status(500).json({ message: "Error retrieving users", error: error.message });
+//     }
+// });
+
 const getAllUsers = asyncHandler(async (req, res) => {
     try {
+        // Find all users
         const users = await User.findAll();
-        return res.status(200).json({ users });
+
+        // Fetch role name for each user
+        const usersWithRoles = await Promise.all(users.map(async user => {
+            // Find user's role
+            const userRole = await UsersRoles.findOne({ where: { user_id: user.id } });
+            if (userRole) {
+                // Find role name
+                const roleModelObj = await Role.findOne({ where: { id: userRole.role_id } });
+                const roleName = roleModelObj.name;
+                return { ...user.toJSON(), role: roleName };
+            } else {
+                // If user has no role, set role to null
+                return { ...user.toJSON(), role: null };
+            }
+        }));
+
+        return res.status(200).json({ users: usersWithRoles });
     } catch (error) {
         return res.status(500).json({ message: "Error retrieving users", error: error.message });
     }
 });
+
+
+  
 
 
 const updateUserByEmail = asyncHandler(async (req, res) => {

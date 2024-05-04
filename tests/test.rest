@@ -3,7 +3,7 @@ POST http://localhost:4000/api/auth/login
 Content-Type: application/json
 
 {
- "email": "consumer8@esi-sba.dz",
+ "email": "responsableStruct@esi-sba.dz",
  "password": "123"
 }
 ###
@@ -19,11 +19,11 @@ Content-Type: application/json
 {
 "firstname":"service",
 "lastname":"m",
-"email":"service@esi-sba.dz",
+"email":"directorLast@esi-sba.dz",
 "phone":"07777",
 "password" : "123",
 "isactive":true,
-"role" : "agentserviceachat",
+"role" : "director",
 "id_structure":8
 }
 
@@ -166,7 +166,8 @@ POST  http://localhost:4000/api/users/createuser
 
 
 ### 
-POST http://localhost:4000/api/bons/create/130
+POST http://localhost:4000/api/bons/create/157
+Content-Type: application/json
 
 {
   "number": "1233",
@@ -174,14 +175,12 @@ POST http://localhost:4000/api/bons/create/130
   "deliverydate": "2024-04-10",
   "orderspecifications": "Sample order specifications",
   "status": "Pending",
-  "productDetails": [
+  "id_fournisseur":"2",
+  "productsOrdered": [
     {
-      "productId": 1,
-      "orderedQuantity": 5
-    },
-    {
-      "productId": 3,
-      "orderedQuantity": 2
+      "productId": 23,
+      "ordered_quantity": 5,
+      "price":1000
     }
   ]
 }
@@ -303,7 +302,7 @@ DELETE http://localhost:4000/api/bons/deleteBonDechargeById/18
 
 
 ### 
-POST : http://localhost:4000/api/bons/create-bon-commande-interne/143
+POST  http://localhost:4000/api/bons/create-bon-commande-interne/143
 {
   "number": 80,
   "date": "2024-05-01",
@@ -318,16 +317,18 @@ POST : http://localhost:4000/api/bons/create-bon-commande-interne/143
 
 
 ###
-GET: http://localhost:4000/api/notifications/responsable/145
+GET http://localhost:4000/api/notifications/responsable/145
 
 ###
-GET: http://localhost:4000/api/notifications/magasinier/136
+GET http://localhost:4000/api/notifications/magasinier/136
 
 ###
-GET : http://localhost:4000/api/notifications/directeur/34
+GET  http://localhost:4000/api/notifications/directeur/34
 
 ####
-PATCH : http://localhost:4000/api/bons/validation/21
+PATCH  http://localhost:4000/api/bons/validation/32
+
+
 {
   "products": [
     {
@@ -337,9 +338,9 @@ PATCH : http://localhost:4000/api/bons/validation/21
   ]
 }
 
-
-POST http://localhost:4000/api/bons/create-bon-sortie/13
-
+### 
+POST http://localhost:4000/api/bons/create-bon-sortie/18
+Content-Type: application/json
 
 {
   "id_magasinier": 136,
@@ -348,14 +349,13 @@ POST http://localhost:4000/api/bons/create-bon-sortie/13
   "date": "2024-04-25",
   "produitsServie": [
     {
-      "id_produit": 4,
-      "servedquantity": 2
-    },
-    {
-      "id_produit": 5,
-      "servedquantity": 2
+      "id_produit": 1,
+      "servedquantity": 0
     }
   ]
 }
 
 
+###
+
+GET http://localhost:4000/api/pdf/pdfbonsortie/59

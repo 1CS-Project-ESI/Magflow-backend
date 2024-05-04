@@ -9,10 +9,10 @@ import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotific
 const createBonCommande = async (req, res) => {
     try {
         // Step 1: Get id_agentserviceachat and id_fournisseur from params
-        const { id_agentserviceachat, id_fournisseur } = req.params;
+        const { id_agentserviceachat } = req.params;
         
         // Step 2: Get number, orderdate, status, and product details from body
-        const { number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
+        const { number, orderdate, status, productsOrdered ,orderspecifications ,id_fournisseur} = req.body;
 
         // Step 3: Initialize total_ht, total_ttc, and total_tva to 0
         let total_ht = 0;
@@ -453,6 +453,7 @@ const getcommandinternedetails = async (req, res) => {
             const product = await Produit.findByPk(order.id_produit);
             if (product) {
                 return {
+                    id_produit :product.id,
                     name: product.name,
                     characteristics: product.caracteristicsgit ,
                     orderedQuantity: order.orderedquantity,
@@ -642,7 +643,7 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
 
 const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
     try {
-        const { role } = req.body; // Assuming user role is available in req.user
+        const { role } = req.query; // Assuming user role is available in req.user
         let validationStatus;
 
         // Check user role and set validation status accordingly
@@ -650,8 +651,8 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
             case 'director':
                 validationStatus = 1;
                 break;
-            case 'magazinier':
-                validationStatus === 2 || validationStatus === 3 ;
+            case 'magasinier':
+                validationStatus =[2, 3];
                 break;
             default:
                 return res.status(403).json({ message: 'User role not authorized' });
@@ -878,7 +879,7 @@ const deleteBonDechargeById = async (req, res) => {
 const validateBonCommandeInterne = async (req, res) => {
     try {
         const { id_boncommandeinterne } = req.params;
-        const { products } = req.body;
+        const { products } = req.body; // id prodcut +acccordProduct 
 
         const bonCommandeInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
 

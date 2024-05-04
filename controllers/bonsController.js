@@ -9,18 +9,13 @@ import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotific
 
 const createBonCommande = async (req, res) => {
     try {
-        // Step 1: Get id_agentserviceachat and id_fournisseur from params
         const { id_agentserviceachat } = req.params;
-        
-        // Step 2: Get number, orderdate, status, and product details from body
-        const { number, orderdate, status, productsOrdered ,orderspecifications ,id_fournisseur} = req.body;
+        const { id_fournisseur, number, orderdate, status, productsOrdered ,orderspecifications} = req.body;
 
-        // Step 3: Initialize total_ht, total_ttc, and total_tva to 0
         let total_ht = 0;
         let tva = 0;
         let total_ttc = 0;
 
-        // Create a new instance of BonCommande
         const newBonCommande = await BonCommande.create({
             id_agentserviceachat,
             id_fournisseur,
@@ -32,12 +27,10 @@ const createBonCommande = async (req, res) => {
             total_ht
         });
 
-        // Step 4: Iterate through productsOrdered array and calculate total_ht
         for (const product of productsOrdered) {
             total_ht += product.ordered_quantity * product.price;
         }
 
-        // Step 5 & 6: Calculate total_ttc and total_tva
         for (const product of productsOrdered) {
             const { productId } = product;
             const produit = await Produit.findByPk(productId);
@@ -54,7 +47,6 @@ const createBonCommande = async (req, res) => {
                 return res.status(404).json({ message: `Article not found for product ID ${productId}` });
             }
 
-            // Find article by ID
             const article = await Article.findByPk(produitArticle.id_article);
 
             if (!article) {
@@ -64,7 +56,6 @@ const createBonCommande = async (req, res) => {
             const tva = article.tva;
             total_ttc += (product.price * (1 + tva / 100)) * product.ordered_quantity;
 
-            // Step 7: Add a line for each product in the produitscommandes table
             await ProduitsCommandes.create({
                 id_produit: product.productId,
                 id_boncommande: newBonCommande.id,
@@ -73,7 +64,6 @@ const createBonCommande = async (req, res) => {
             });
         }
 
-        // Step 8: Update total_ht, tva, and total_ttc in the BonCommande table
         await newBonCommande.update({
             total_ht,
             tva: total_ttc - total_ht,

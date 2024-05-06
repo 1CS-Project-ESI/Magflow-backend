@@ -131,6 +131,65 @@ const createBonRepection = async (req, res) => {
     }
 };
 
+// bon reception deteailes 
+// const getBonReceptionDetails = async (req, res) => {
+//     try {
+//         // const { id } = req.params;
+//         const id = 22;
+//         const bonReception = await BonReception.findOne({
+//             where: { id: id }
+//         });
+//         console.log(bonReception);
+
+//         if (!bonReception) {
+//             return res.status(404).json({ message: 'Bon reception not found' });
+//         }
+
+//         const magasinier = await Magasinier.findByPk(bonReception.id_magasinier, {
+//             attributes: ['id', 'name'] 
+//         });
+
+//         const bonCommande = await BonCommande.findByPk(bonReception.id_boncommande, {
+//             attributes: ['id', 'number', 'orderdate'] 
+//         });
+
+//         const produitsDelivresData = await ProduitsDelivres.findAll({
+//             where: {
+//                 id_bonreception: id
+//             },
+//             attributes: ['id_produit', 'receivedquantity'] 
+//         });
+
+//         const produitsDelivres = [];
+//         for (const produitDelivreData of produitsDelivresData) {
+//             const { id_produit, receivedquantity } = produitDelivreData;
+//             const produit = await Produit.findByPk(id_produit, {
+//                 attributes: ['id', 'name'] 
+//             });
+//             if (produit) {
+//                 produitsDelivres.push({ 
+//                     ...produit.toJSON(), 
+//                     receivedquantity,
+//                     product_name: produit.name // Include the product name in the object
+//                 });
+//             }
+//         }
+
+//         res.status(200).json({ 
+//             bonReception: { 
+//                 ...bonReception.toJSON(), 
+//                 magasinier_name: magasinier ? magasinier.name : null,
+//                 bon_commande_number: bonCommande ? bonCommande.number : null,
+//                 bon_commande_orderdate: bonCommande ? bonCommande.orderdate : null
+//             }, 
+//             produitsDelivres
+//         });
+//     } catch (error) {
+//         console.error('Error fetching bon reception details:', error);
+//         res.status(500).json({ message: 'Failed to fetch bon reception details' });
+//     }
+// };
+
 
 const getAllCommands = async(req,res) =>{
     try {
@@ -188,7 +247,6 @@ const getAllProductsOfCommand = async (req, res) => {
 };
 
 
-
 const RemainingProducts = async (req, res) => {
     try {
         const CommandId = req.params.CommandId;
@@ -212,12 +270,13 @@ const RemainingProducts = async (req, res) => {
             raw: true,
         });
 
-
-        const receivedProducts = await ProduitsDelivres.findAll({
+        // Retrieve product names
+        const productIds = orderedProducts.map(product => product.id_produit);
+        const products = await Produit.findAll({
             where: {
-                id_bonreception: receptionIds,
+                id: productIds,
             },
-            attributes: ['id_produit', 'receivedquantity'],
+            attributes: ['id', 'name'],
             raw: true,
         });
 
@@ -227,13 +286,24 @@ const RemainingProducts = async (req, res) => {
             return acc;
         }, {});
 
+        const receivedProducts = await ProduitsDelivres.findAll({
+            where: {
+                id_bonreception: receptionIds,
+            },
+            attributes: ['id_produit', 'receivedquantity'],
+            raw: true,
+        });
+
         const remainingProducts = orderedProducts.map(product => {
             const receivedProduct = receivedProducts.find(item => item.id_produit === product.id_produit);
-            // if the products doesnt exist in the produitsDelivres table then received quantity = 0 
+            // if the products doesn't exist in the produitsDelivres table then received quantity = 0 
             const receivedQuantity = receivedProduct ? receivedProduct.receivedquantity : 0;
             const remainingQuantity = product.ordered_quantity - receivedQuantity;
+            // Find the product name corresponding to the current product ID
+            const productName = products.find(p => p.id === product.id_produit)?.name || 'Unknown';
             return {
                 productId: product.id_produit,
+                name: productName, // Include product name
                 orderedQuantity: product.ordered_quantity,
                 receivedQuantity: receivedQuantity,
                 remainingQuantity: remainingQuantity
@@ -246,6 +316,7 @@ const RemainingProducts = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
     }
 };
+
 
 const getProductsWithQuantityDelivered = async (req, res) => {
     try {
@@ -331,9 +402,104 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
     }
 };
 
-const getCommandDetails = async (req, res) => {
+// const getBonReceptionDetails = async (req, res) => {
+//     try {
+//         // const { id } = req.params;
+//         const id = 22;
+//         const reception = await BonReception.findOne({
+//             where: { id: id }
+//         });
+
+//         if (!reception) {
+//             return res.status(404).json({ message: 'reception not found' });
+//         }
+
+       
+        
+//         const produitsDelivresData = await ProduitsDelivres.findAll({
+//                         where: {
+//                             id_bonreception: id
+//                         },
+//                         attributes: ['id_produit', 'receivedquantity'] 
+//                     });
+            
+//                     const produitsDelivres = [];
+//                     for (const produitDelivreData of produitsDelivresData) {
+//                         const { id_produit, receivedquantity } = produitDelivreData;
+//                         const produit = await Produit.findByPk(id_produit, {
+//                             attributes: ['id', 'name'] 
+//                         });
+//                         if (produit) {
+//                             produitsDelivres.push({ 
+//                                 ...produit.toJSON(), 
+//                                 receivedquantity,
+//                                 product_name: produit.name // Include the product name in the object
+//                             });
+//                         }
+//                     }
+
+        
+
+//         res.status(200).json({ reception: { ...command.toJSON(), produitsDelivres }});
+//     } catch (error) {
+//         console.error('Error fetching command details:', error);
+//         res.status(500).json({ message: 'Failed to fetch command details' });
+//     }
+// };
+
+
+const getBonReceptionDetails = async (req, res) => {
     try {
         const { id } = req.params;
+        console.log(id);
+        // const id = 22;
+        const reception = await BonReception.findOne({
+            where: { id: id }
+        });
+
+        if (!reception) {
+            return res.status(404).json({ message: 'Reception not found' });
+        }
+
+        const produitsDelivresData = await ProduitsDelivres.findAll({
+            where: {
+                id_bonreception: id
+            },
+            attributes: ['id_produit', 'receivedquantity'] 
+        });
+
+        const produitsDelivres = [];
+        for (const produitDelivreData of produitsDelivresData) {
+            const { id_produit, receivedquantity } = produitDelivreData;
+            const produit = await Produit.findByPk(id_produit, {
+                attributes: ['id', 'name'] 
+            });
+            if (produit) {
+                produitsDelivres.push({ 
+                    ...produit.toJSON(), 
+                    receivedquantity,
+                    product_name: produit.name // Include the product name in the object
+                });
+            }
+        }
+
+        res.status(200).json({ 
+            reception: { 
+                ...reception.toJSON(),
+            }, 
+            produitsDelivres
+        });
+    } catch (error) {
+        console.error('Error fetching bon reception details:', error);
+        res.status(500).json({ message: 'Failed to fetch bon reception details' });
+    }
+};
+
+
+const getCommandDetails = async (req, res) => {
+    try {
+         const { id } = req.params;
+      
         const command = await BonCommande.findOne({
             where: { id: id }
         });
@@ -376,7 +542,6 @@ const getCommandDetails = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch command details' });
     }
 };
-
 
 
 
@@ -935,4 +1100,4 @@ const validateBonCommandeInterne = async (req, res) => {
 };
 
 
-export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne}
+export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne,getBonReceptionDetails}

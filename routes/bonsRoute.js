@@ -1,7 +1,7 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
 
-import {  getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne} from "../controllers/bonsController.js";
+import {  getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne,getBonReceptionDetails} from "../controllers/bonsController.js";
 
 
 const router = express.Router();
@@ -13,6 +13,8 @@ router.use(cors());
 
 router.post('/create/:id_agentserviceachat',createBonCommande);  // link done 
 router.post('/create-bon-reception/:id_boncommande', createBonRepection);
+router.get('/receptionDetails/:id', getBonReceptionDetails);
+
 router.post('/create-bon-commande-interne/:id_consommateur', createBonCommandeInterne);
 router.post('/create-bon-sortie/:id_boncommandeinterne', createBonSortie);
 router.get('/allcommands', getAllCommands); //link done 

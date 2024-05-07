@@ -96,20 +96,32 @@ const updateArticle = async (req, res) => {
 // };
 const addProduct = async (req, res) => {
     try {
-        const { articleId } = req.params;
+      
         const { name, caracteristics, quantity, seuil } = req.body;
-
-        // Create the product
         const product = await Produit.create({ name, caracteristics, quantity, seuil });
 
-        // Add an entry in the produitsarticle table
-        await ProduitsArticle.create({ id_produit: product.id, id_article: articleId });
 
         res.status(200).json(product);
     } catch (error) {
         res.status(500).json({ message: 'Failed to add product', error: error.message });
     }
 };
+
+
+const addProductByartcileId = async (req, res) => {
+    try {
+        const { articleId } = req.params;
+        const { productId  } = req.body; // name, caracteristics, quantity, seuil, 
+
+        // Add an entry in the produitsarticle table
+        await ProduitsArticle.create({ id_produit: productId, id_article: articleId });
+
+        // res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to add product', error: error.message });
+    }
+};
+
 
 
 

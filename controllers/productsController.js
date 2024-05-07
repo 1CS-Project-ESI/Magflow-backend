@@ -361,4 +361,4 @@ const getProductInfo = async (req, res) => {
 
 
 
-export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,getChapterInfo,getArticleInfo,getProductInfo}
+export {addChapter , addArticle , addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles , getArticleProducts,deleteProduct,deleteArticleIfEmpty,deleteChapterIfEmpty ,updateChapitre,updateArticle,getChapterInfo,getArticleInfo,getProductInfo,addProductByartcileId}

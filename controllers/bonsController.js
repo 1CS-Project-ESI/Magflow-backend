@@ -89,7 +89,6 @@ const createBonRepection = async (req, res) => {
         const { number, id_magasinier, deliverydate, products, receivedQuantities } = req.body;
 
         const isValidProducts = await Promise.all(products.map(async (productId) => {
-
             const existingProduct = await ProduitsCommandes.findOne({
                 where: {
                     id_produit: productId,
@@ -100,7 +99,7 @@ const createBonRepection = async (req, res) => {
         }));
 
         if (isValidProducts.includes(false)) {
-            return res.status(400).json({ message: 'These products were not ordred ' });
+            return res.status(400).json({ message: 'These products were not ordered' });
         }
 
         const bonReception = await BonReception.create({
@@ -119,6 +118,14 @@ const createBonRepection = async (req, res) => {
                 id_bonreception: bonReceptionId,
                 receivedquantity: receivedQuantity
             });
+
+            const product = await Produit.findByPk(productId);
+            if (product) {
+                const newQuantity = product.quantity + receivedQuantity;
+                await product.update({ quantity: newQuantity });
+            } else {
+                console.error(`Product with ID ${productId} not found`);
+            }
         });
 
         // wait for all ProduitsDelivres instances to be created (using promise)

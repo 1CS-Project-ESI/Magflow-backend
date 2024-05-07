@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon de Decharge</title>
+    <style>
+        /* Add your CSS styles here */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .date {
+            justify-items: end;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Bon de Decharge N° <%= bonDecharge.id %>
+    </h1>
+    <table>
+        <tr>
+            <th>Magasinier</th>
+            <td>
+                <%= magasinier.firstname %>
+            </td>
+        </tr>
+        <tr>
+            <th>Le preneur</th>
+            <td>
+                <%= user ? user.firstname : 'N/A' %>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Observation</th>
+            <td>
+                <%= bonDecharge.observation || 'N/A' %>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <h2>Produits Decharges</h2>
+    <table>
+        <tr>
+            <th>DESIGNATION DES
+                ARTICLES</th>
+            <th>Quantité </th>
+        </tr>
+        <% produitsDetails.forEach(produit=> { %>
+            <tr>
+                <td>
+                    <%= produit.produitName %>
+                </td>
+                <td>
+                    <%= produit.dechargedquantity %>
+                </td>
+            </tr>
+            <% }); %>
+    </table>
+    <div class="date">
+        <th>Date</th>
+        <td>
+            <%= bonDecharge.date %>
+        </td>
+    </div>
+</body>
+
+</html>

@@ -32,14 +32,6 @@ const Fournisseur = sequelize.define('fournisseur', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    id_chapitre: {
-        type: DataTypes.INTEGER,
-        allowNull: true, // or false, depending on your requirements
-        references: {
-            model: 'chapitre', // Name of the referenced table
-            key: 'id' // Primary key in the referenced table
-        }
-    }
 }, { 
     tableName: 'fournisseur',
     timestamps: false

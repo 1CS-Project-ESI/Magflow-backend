@@ -3,12 +3,11 @@
 import fs from 'fs';
 import ejs from 'ejs';
 import path from 'path';
-import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import htmlPdf from 'html-pdf';
 
-import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes , BonReception , ProduitsDelivres} from '../models/bonsModel.js';
-import { Consumer, User ,AgentServiceAchat} from '../models/usersModel.js';
+import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes , BonReception , ProduitsDelivres , BonDecharge , ProduitsDecharges} from '../models/bonsModel.js';
+import { Consumer, User ,AgentServiceAchat , Magasinier} from '../models/usersModel.js';
 import { Fournisseur } from '../models/fournisseurModel.js';
 import { Produit } from '../models/productsModel.js';
 import { Structure } from '../models/structuresModel.js';
@@ -318,4 +317,78 @@ const generateBonReceptionPDF = async (req, res) => {
     }
 };
 
-export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF}
+const generateBonDechargePDF = async (req, res) => {
+    try {
+        const { bonDechargeId } = req.params;
+
+        // Fetch Bon de Decharge details
+        const bonDecharge = await BonDecharge.findByPk(bonDechargeId);
+        if (!bonDecharge) {
+            throw new Error('Bon de Decharge not found');
+        }
+
+        // Fetch Magasinier details
+        const magasinier = await User.findByPk(bonDecharge.id_magasinier);
+        if (!magasinier) {
+            throw new Error('Magasinier not found');
+        }
+
+        // Fetch Consommateur details
+        const consommateur = await Consumer.findByPk(bonDecharge.id_consommateur);
+        if (!consommateur) {
+            throw new Error('consommateur not found');
+        }
+
+        const user = await User.findByPk(bonDecharge.id_consommateur)
+
+        // Fetch details of products decharged
+        const produitsDecharges = await ProduitsDecharges.findAll({
+            where: { id_bondecharge: bonDechargeId }
+        });
+        if (!produitsDecharges || produitsDecharges.length === 0) {
+            throw new Error('Produits Decharges not found');
+        }
+
+        // Prepare products details
+        const produitsDetails = await Promise.all(produitsDecharges.map(async (produitDecharge) => {
+            const produit = await Produit.findByPk(produitDecharge.id_produit);
+            if (!produit) {
+                throw new Error('Produit not found');
+            }
+            return {
+                produitName: produit.name || 'N/A',
+                dechargedquantity: produitDecharge.dechargedquantity
+            };
+        }));
+
+        // Render HTML template with EJS
+        const templatePath = path.resolve(fileURLToPath(import.meta.url), '../bonDechargeTemplate.ejs');
+        const templateContent = fs.readFileSync(templatePath, 'utf-8');
+        const htmlContent = ejs.render(templateContent, {
+            bonDecharge,
+            magasinier,
+            user,
+            produitsDetails
+        });
+
+        // Define PDF options
+        const pdfOptions = { format: 'A4' };
+
+        // Generate PDF
+        const pdfPath = `bonDecharge_${bonDechargeId}.pdf`;
+        htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+            if (err) {
+                console.error('Failed to generate Bon de Decharge PDF:', err);
+                return res.status(500).json({ error: 'Failed to generate Bon de Decharge PDF' });
+            }
+            console.log('Bon de Decharge PDF generated successfully:', response);
+            return res.status(200).json({ pdfPath });
+        });
+    } catch (error) {
+        console.error('Error generating Bon de Decharge PDF:', error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+
+export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF , generateBonDechargePDF}

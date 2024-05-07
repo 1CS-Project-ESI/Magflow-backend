@@ -293,6 +293,14 @@ const BonDecharge = sequelize.define('bondecharge', {
         primaryKey: true,
         autoIncrement: true
     },
+    id_boncommandeinterne: { // New column definition
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'boncommandeinterne',
+            key: 'id'
+        }
+    },
     id_magasinier: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -313,10 +321,6 @@ const BonDecharge = sequelize.define('bondecharge', {
     date: {
         type: DataTypes.DATE,
         allowNull: false
-    },
-    observation: {
-        type: DataTypes.STRING,
-        allowNull: true
     },
     status: {
         type: DataTypes.STRING,
@@ -344,6 +348,10 @@ const ProduitsDecharges = sequelize.define('produitsdecharges', {
             model: 'produit',
             key: 'id'
         }
+    },
+    observation: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
     dechargedquantity: {
         type: DataTypes.INTEGER,

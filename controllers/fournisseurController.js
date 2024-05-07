@@ -4,7 +4,6 @@ import { Chapitre } from '../models/productsModel.js';
 
 const createFournisseur = async (req, res) => {
     try {
-        const {id_chapitre} = req.params
         const { name, email, phone, rc, nif, rib } = req.body;
         
         const existingFournisseur = await Fournisseur.findOne({ where: { email } });
@@ -16,7 +15,6 @@ const createFournisseur = async (req, res) => {
             name,
             email,
             phone,
-            id_chapitre,
             rc,
             nif,
             rib

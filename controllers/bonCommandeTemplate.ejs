@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bon de Commande externe</title>
+    <title>REPUBLIQUE ALGERIENNE DEMOCRATIQUE ET POPULAIRE MINISTERE DE L'ENSEIGNEMENT SUPERIEUR ET DE LA RECHERCHE SCIENTIFIQUE</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,24 +48,24 @@
 <body>
     <div class="container">
         <h1>Bon de Commande</h1>
-        <p>Number: <%= bonCommande.number %></p>
+        <p>N°: <%= bonCommande.number %></p>
         <p>Date: <%= bonCommande.orderdate %></p>
         <p>Agent Service Achat: <%= user.firstname , user.lastname %></p>
-        <p>Fournisseur: <%= fournisseur.name %></p>
+        <p>Nom ou raison sociale (mentionner la forme juridique): <%= fournisseur.name %></p>
         <p>email: <%= fournisseur.email %></p>
-        <p>phone: <%= fournisseur.phone %></p>
-        <p>rc: <%= fournisseur.rc %></p>
-        <p>rib: <%= fournisseur.rib %></p>
-        <p>nif: <%= fournisseur.nif %></p>
+        <p>Téléphone et Fax: <%= fournisseur.phone %></p>
+        <p>N° R.C:: <%= fournisseur.rc %></p>
+        <p>RIB (ou RIP): <%= fournisseur.rib %></p>
+        <p>numéro d'identification fiscale (NIF): <%= fournisseur.nif %></p>
 
         <h2>Produits Commandés:</h2>
         <table>
             <tr>
                 <th>Produit</th>
-                <th>Caractéristiques</th>
-                <th>Quantité Commandée</th>
+                <th>Désignation</th>
+                <th>Quantité </th>
                 <th>Prix Unitaire (HT)</th>
-                <th>Prix Total (HT)</th>
+                <th>Montant</th>
             </tr>
             <% produitsDetails.forEach(produit => { %>
                 <tr>

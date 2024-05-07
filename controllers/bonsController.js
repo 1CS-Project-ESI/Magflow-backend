@@ -648,6 +648,12 @@ const createBonSortie = async (req, res) => {
         if (!bonCommandeInterne) {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
+        const sortie = await BonSortie.findOne({
+            where : {id_boncommandeinterne : id_boncommandeinterne}
+        })
+        if(sortie){
+            return res.status(400).json({ message: 'already done'  });
+        }
 
         if(bonCommandeInterne.typecommande!='Commande Interne'){
             return res.status(400).json({ message: 'its bon decharge' });
@@ -842,7 +848,7 @@ const createBonDecharge = async (req, res) => {
     // let transaction;
     try {
         // Validate input data
-        const { date, description, produitsdecharges ,id_magasinier } = req.body; // problm if id_consumer 
+        const { date, produitsdecharges ,id_magasinier } = req.body; // problm if id_consumer 
         const {  id_boncommandeinterne} = req.params;
 
         const bonCommandeInterne = await BonCommandeInterne.findOne({
@@ -852,9 +858,17 @@ const createBonDecharge = async (req, res) => {
         if(bonCommandeInterne.typecommande!='Commande Decharges'){
             return res.status(400).json({ message: 'its bon internee' });
         }
+        const decharge = await BonDecharge.findOne({
+            where : {id_boncommandeinterne : id_boncommandeinterne}
+        })
+        if(decharge){
+            return res.status(400).json({ message: 'already done'  });
+        }
+        
         if(bonCommandeInterne.validation!=3){
             return res.status(400).json({ message: 'its not validated yet ' });
-        } 
+        } ;
+
 
         const id_consommateur = bonCommandeInterne.id_consommateur;
 
@@ -864,7 +878,6 @@ const createBonDecharge = async (req, res) => {
             id_magasinier: id_magasinier,
             id_consommateur: id_consommateur,
             date: date,
-            description: description
         }, ); 
 
         
@@ -889,7 +902,8 @@ const createBonDecharge = async (req, res) => {
                 
                 id_bondecharge: bonDecharge.id,
                 id_produit: produit.id,
-                dechargedquantity: accordedQuantity
+                dechargedquantity: accordedQuantity,
+                observation : observation,
             }, ); 
 
             await Produit.update({

@@ -3,7 +3,6 @@
 import fs from 'fs';
 import ejs from 'ejs';
 import path from 'path';
-import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import htmlPdf from 'html-pdf';
 

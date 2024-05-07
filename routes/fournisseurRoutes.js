@@ -8,7 +8,7 @@ import cors from "cors";
 router.use(cors());
 
 
-router.post('/create/:id_chapitre', createFournisseur);
+router.post('/create', createFournisseur);
 router.get('/allFournisseurs', getAllFournisseurs);
 router.put('/update/:email', updateFournisseurByEmail);
 router.delete('/delete/:email', deleteFournisseurByEmail)

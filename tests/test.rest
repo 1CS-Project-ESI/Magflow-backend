@@ -374,3 +374,15 @@ GET http://localhost:4000/api/bons/receptionDetails/28
 ### 
 GET http://localhost:4000/api/bons/remaining-products/93
 
+
+
+###
+GET http://localhost:4000/api/store/article/infos/6
+###
+
+POST http://localhost:4000/api/store/addProductByartcileId/13
+Content-Type: application/json
+
+{
+  "productId" :3
+}

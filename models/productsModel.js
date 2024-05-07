@@ -80,7 +80,9 @@ const Chapitre = sequelize.define('chapitre', {
     },
     quantity: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
+        defaultValue:0
+
     },
     seuil: {
         type: DataTypes.INTEGER,

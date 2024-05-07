@@ -1,5 +1,6 @@
 import expressAsyncHandler from "express-async-handler";
 import { Chapitre,Article ,Produit ,ProduitsArticle } from "../models/productsModel.js";
+import { where } from "sequelize";
 
 const addChapter = async(req,res) => {
     const {id} = req.params;
@@ -110,19 +111,32 @@ const addProduct = async (req, res) => {
 
 const addProductByartcileId = async (req, res) => {
     try {
-        const { articleId } = req.params;
-        const { productId  } = req.body; // name, caracteristics, quantity, seuil, 
-
-        // Add an entry in the produitsarticle table
-        await ProduitsArticle.create({ id_produit: productId, id_article: articleId });
-
-        // res.status(200).json(product);
+      const { id } = req.params; 
+      const { productId } = req.body; 
+  
+    
+      if (!id || !productId) {
+        return res.status(400).json({ message: 'Missing required fields: id and productId' });
+      }
+  
+      const existingProduct = await ProduitsArticle.findOne({
+        where: { id_produit: productId, id_article: id },
+      });
+  
+      if (existingProduct) {
+        return res.status(409).json({ message: 'Product already exists for this article' });
+      }
+  
+     
+      const product = await ProduitsArticle.create({ id_produit: productId, id_article: id });
+  
+      res.status(201).json(product); 
     } catch (error) {
-        res.status(500).json({ message: 'Failed to add product', error: error.message });
+      console.error(error);
+      res.status(500).json({ message: 'Failed to add product', error: 'Internal server error' }); 
     }
-};
-
-
+  };
+  
 
 
 
@@ -166,10 +180,10 @@ const getAllchapters = async (req, res) => {
 
   const getAllArticles = async (req, res) => {
     try {
-      // Find all structures
+     
       const articles = await Article.findAll();
   
-      // Return the list of structures
+      
       return res.status(200).json({ articles });
     } catch (error) {
       return res.status(500).json({ message: "Error getting structures", error: error.message });

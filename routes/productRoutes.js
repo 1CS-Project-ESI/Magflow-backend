@@ -11,7 +11,7 @@ router.post('/chapter/create/:id', addChapter);
 router.post('/article/create/:chapterId',addArticle);
 // product creation 
 router.post('/product/create',addProduct);
-router.post('/addProductByartcileId/:articleId', addProductByartcileId);
+router.post('/addProductByartcileId/:id', addProductByartcileId);
 
 router.get('/chapter/all', getAllchapters);
 router.get('/article/all', getAllArticles);

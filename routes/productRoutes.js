@@ -1,6 +1,6 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
-import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles ,getArticleProducts, deleteProduct, deleteArticleIfEmpty, deleteChapterIfEmpty,updateChapitre, updateArticle, getChapterInfo, getArticleInfo, getProductInfo } from "../controllers/productsController.js";
+import { addChapter,addArticle,addProduct,getAllArticles,getAllProducts,getAllchapters , getChapterArticles ,getArticleProducts, deleteProduct, deleteArticleIfEmpty, deleteChapterIfEmpty,updateChapitre, updateArticle, getChapterInfo, getArticleInfo, getProductInfo ,addProductByartcileId } from "../controllers/productsController.js";
 
 const router = express.Router();
 import cors from "cors";
@@ -9,7 +9,10 @@ router.use(cors());
 
 router.post('/chapter/create/:id', addChapter);
 router.post('/article/create/:chapterId',addArticle);
-router.post('/product/create/:articleId',addProduct);
+// product creation 
+router.post('/product/create',addProduct);
+router.post('/addProductByartcileId/:articleId', addProductByartcileId);
+
 router.get('/chapter/all', getAllchapters);
 router.get('/article/all', getAllArticles);
 router.get('/product/all', getAllProducts);

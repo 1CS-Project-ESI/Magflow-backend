@@ -64,6 +64,7 @@ const Chapitre = sequelize.define('chapitre', {
     timestamps : false ,
     tableName : 'article'
   });
+  
   const Produit = sequelize.define('produit', {
     id: {
         type: DataTypes.INTEGER,

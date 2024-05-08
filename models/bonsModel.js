@@ -90,6 +90,10 @@ const BonReception = sequelize.define('bonreception', {
         type: DataTypes.DATE,
         allowNull: false,
     },
+     bonlivraison_path: {
+        type: DataTypes.STRING, // Adjust the data type based on your file path format
+        allowNull: true, // Depending on your requirements
+    },
 }, {
     tableName: 'bonreception',
     timestamps: false,

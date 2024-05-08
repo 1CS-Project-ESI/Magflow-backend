@@ -655,6 +655,7 @@ const createBonSortie = async (req, res) => {
         if (!bonCommandeInterne) {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
+
         const sortie = await BonSortie.findOne({
             where : {id_boncommandeinterne : id_boncommandeinterne}
         })
@@ -662,11 +663,11 @@ const createBonSortie = async (req, res) => {
             return res.status(400).json({ message: 'already done'  });
         }
 
-        if(bonCommandeInterne.typecommande!='Commande Interne'){
-            return res.status(400).json({ message: 'its bon decharge' });
+        if(bonCommandeInterne.typecommande !== 'Commande Interne'){
+            return res.status(400).json({ message: 'It\'s bon decharge' });
         }
 
-        // Check if each produitServie is contained in boncommandeinterne and served quantity <= accorded quantity
+        // Check if accorded quantity <= available quantity - seuil
         for (const produitServie of produitsServie) {
             const produitCommande = await ProduitsCommandeInterne.findOne({
                 where: {
@@ -679,48 +680,16 @@ const createBonSortie = async (req, res) => {
                 return res.status(400).json({ message: 'Product not found in boncommandeinterne' });
             }
 
-            if (produitCommande.accordedquantity < produitServie.servedquantity) {
-                return res.status(400).json({ message: 'Served quantity exceeds accorded quantity' });
-            }
-
-        }
-
-        // Calculate the sum of served quantity for each product in all bonsortie associated with the boncommandeinterne
-        const totalServedQuantity = {};
-        const bonsSorties = await BonSortie.findAll({
-            where: { id_boncommandeinterne }
-        });
-
-        for (const bonsortie of bonsSorties) {
-            const produitsServies = await ProduitsServie.findAll({
-                where: { id_bonsortie: bonsortie.id }
-            });
-
-            for (const produitServie of produitsServies) {
-                totalServedQuantity[produitServie.id_produit] = (totalServedQuantity[produitServie.id_produit] || 0) + produitServie.servedquantity;
+            if (produitCommande.accordedquantity > produitCommande.quantity - produitCommande.seuil) {
+                return res.status(400).json({ message: 'Accorded quantity exceeds available quantity - seuil' });
             }
         }
-
-        // Check if the sum of served quantity for each product <= accorded quantity
-        for (const produitId in totalServedQuantity) {
-            const accordedQuantity = await ProduitsCommandeInterne.sum('accordedquantity', {
-                where: {
-                    id_produit: produitId,
-                    id_boncommandeinterne
-                }
-            });
-
-            if (totalServedQuantity[produitId] > accordedQuantity) {
-                return res.status(400).json({ message: 'Total served quantity exceeds accorded quantity for product' });
-            }
-        }
-
-        
 
         // All verifications passed, create bonsortie and produitsServie entries
-        if(bonCommandeInterne.validation!=3){
-            return res.status(400).json({ message: 'its not validated yet ' });
+        if(bonCommandeInterne.validation !== 3){
+            return res.status(400).json({ message: 'It\'s not validated yet' });
         } 
+
         const bonSortie = await BonSortie.create({
             id_boncommandeinterne,
             id_magasinier,
@@ -735,13 +704,14 @@ const createBonSortie = async (req, res) => {
                 id_produit: produitServie.id_produit,
                 servedquantity: produitServie.servedquantity
             });
+
             const produit = await Produit.findByPk(produitServie.id_produit)
             await Produit.update({
                 quantity: produit.quantity - produitServie.servedquantity
             }, {
                 where: { id: produit.id },
                 // transaction
-            })
+            });
         }
 
         res.status(201).json({ message: 'Bon de sortie created successfully', bonSortie });
@@ -750,6 +720,7 @@ const createBonSortie = async (req, res) => {
         res.status(500).json({ message: 'Failed to create bon de sortie', error: error.message });
     }
 };
+
 
 const getConsommateurCommands = async (req,res) => {
     try {

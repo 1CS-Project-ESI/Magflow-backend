@@ -90,6 +90,10 @@ const BonReception = sequelize.define('bonreception', {
         type: DataTypes.DATE,
         allowNull: false,
     },
+     bonlivraison_path: {
+        type: DataTypes.STRING, // Adjust the data type based on your file path format
+        allowNull: true, // Depending on your requirements
+    },
 }, {
     tableName: 'bonreception',
     timestamps: false,
@@ -236,18 +240,6 @@ const BonSortie = sequelize.define('bonsortie', {
             key: 'id'
         }
     },
-    id_magasinier: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'magasinier',
-            key: 'id'
-        }
-    },
-    observation: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
     service: {
         type: DataTypes.STRING,
         allowNull: false
@@ -281,7 +273,11 @@ const ProduitsServie = sequelize.define('produitsservie', {
     servedquantity: {
         type: DataTypes.INTEGER,
         allowNull: false
-    }
+    },
+    observation: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
 }, {
     tableName: 'produitsservie',
     timestamps: false
@@ -301,14 +297,6 @@ const BonDecharge = sequelize.define('bondecharge', {
             key: 'id'
         }
     },
-    id_magasinier: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'magasinier',
-            key: 'id'
-        }
-    },
     id_consommateur: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -316,8 +304,7 @@ const BonDecharge = sequelize.define('bondecharge', {
             model: 'consumer',
             key: 'id'
         }
-    },
-    
+    },    
     date: {
         type: DataTypes.DATE,
         allowNull: false

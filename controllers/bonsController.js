@@ -1,8 +1,8 @@
 import { BonCommande , BonReception, ProduitsCommandes, ProduitsDelivres , ProduitsCommandeInterne, BonCommandeInterne , BonSortie,ProduitsServie,BonDecharge, ProduitsDecharges} from "../models/bonsModel.js";
 import { Article , Produit, ProduitsArticle } from "../models/productsModel.js";
-
+import {sequelize} from '../models/usersModel.js'; 
 import { Structure } from "../models/structuresModel.js";
-import { Op, Sequelize, where } from 'sequelize';
+import { Op } from 'sequelize';
 import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
 import {Fournisseur} from "../models/fournisseurModel.js";
 import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotificationToMagasinier } from "../services/notificationService.js";
@@ -645,7 +645,7 @@ const getcommandinternedetails = async (req, res) => {
 const createBonSortie = async (req, res) => {
     try {
         const { id_boncommandeinterne } = req.params;
-        const { id_magasinier, observation, service, date, produitsServie } = req.body;
+        const { service, date, observations } = req.body;
 
         // Check if the boncommandeinterne exists
         const bonCommandeInterne = await BonCommandeInterne.findOne({
@@ -656,62 +656,73 @@ const createBonSortie = async (req, res) => {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
 
+        // Check if the boncommandeinterne is of type 'Commande Interne'
+        if (bonCommandeInterne.typecommande !== 'Commande Interne') {
+            return res.status(400).json({ message: 'It\'s not a Commande Interne' });
+        }
+
+        // Check if boncommandeinterne is already processed
         const sortie = await BonSortie.findOne({
-            where : {id_boncommandeinterne : id_boncommandeinterne}
-        })
-        if(sortie){
-            return res.status(400).json({ message: 'already done'  });
+            where: { id_boncommandeinterne: id_boncommandeinterne }
+        });
+        if (sortie) {
+            return res.status(400).json({ message: 'Bon de sortie already created' });
         }
 
-        if(bonCommandeInterne.typecommande !== 'Commande Interne'){
-            return res.status(400).json({ message: 'It\'s bon decharge' });
+        // Check if boncommandeinterne is validated
+        if (bonCommandeInterne.validation !== 3) {
+            return res.status(400).json({ message: 'Bon de commande is not validated yet' });
         }
 
-        // Check if accorded quantity <= available quantity - seuil
-        for (const produitServie of produitsServie) {
-            const produitCommande = await ProduitsCommandeInterne.findOne({
-                where: {
-                    id_produit: produitServie.id_produit,
-                    id_boncommandeinterne
-                }
-            });
+        // Get produits from ProduitsCommandeInterne
+        const produits = await ProduitsCommandeInterne.findAll({
+            where: { id_boncommandeinterne: id_boncommandeinterne }
+        });
 
-            if (!produitCommande) {
-                return res.status(400).json({ message: 'Product not found in boncommandeinterne' });
-            }
-
-            if (produitCommande.accordedquantity > produitCommande.quantity - produitCommande.seuil) {
-                return res.status(400).json({ message: 'Accorded quantity exceeds available quantity - seuil' });
+        // Check if accorded quantity <= available quantity - seuil for each produit
+        for (const produit of produits) {
+            const availableQuantity = produit.quantity - produit.seuil;
+            if (produit.accordedquantity > availableQuantity) {
+                return res.status(400).json({
+                    message: 'Accorded quantity exceeds available quantity - seuil',
+                    produit: produit.id_produit
+                });
             }
         }
 
         // All verifications passed, create bonsortie and produitsServie entries
-        if(bonCommandeInterne.validation !== 3){
-            return res.status(400).json({ message: 'It\'s not validated yet' });
-        } 
-
         const bonSortie = await BonSortie.create({
             id_boncommandeinterne,
-            id_magasinier,
-            observation,
             service,
             date
         });
 
-        for (const produitServie of produitsServie) {
+        // Update ProduitsServie and Produit for each produit
+        for (const produit of produits) {
+            // Find the corresponding observation text for the product
+            const observation = observations.find(obs => obs.id_produit === produit.id_produit);
+
+            // Create ProduitsServie entry
             await ProduitsServie.create({
                 id_bonsortie: bonSortie.id,
-                id_produit: produitServie.id_produit,
-                servedquantity: produitServie.servedquantity
+                id_produit: produit.id_produit,
+                servedquantity: produit.accordedquantity,
+                observation: observation ? observation.observation : null
             });
 
-            const produit = await Produit.findByPk(produitServie.id_produit)
-            await Produit.update({
-                quantity: produit.quantity - produitServie.servedquantity
-            }, {
-                where: { id: produit.id },
-                // transaction
-            });
+            // Update quantity in Produit
+            await Produit.update(
+                { quantity: sequelize.literal(`quantity - ${produit.accordedquantity}`) },
+                { where: { id: produit.id_produit } }
+            );
+
+            // Update observation in Produit if it exists
+            if (observation) {
+                await Produit.update(
+                    { observation: observation.observation },
+                    { where: { id: produit.id_produit } }
+                );
+            }
         }
 
         res.status(201).json({ message: 'Bon de sortie created successfully', bonSortie });
@@ -823,87 +834,96 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
 
 
 const createBonDecharge = async (req, res) => {
-    // let transaction;
     try {
-        // Validate input data
-        const { date, produitsdecharges ,id_magasinier } = req.body; // problm if id_consumer 
-        const {  id_boncommandeinterne} = req.params;
+        const { service, date, observations } = req.body;
+        const {id_boncommandeinterne} = req.params
 
+        // Check if the boncommandeinterne exists
         const bonCommandeInterne = await BonCommandeInterne.findOne({
             where: { id: id_boncommandeinterne }
         });
-        // Create borrowing receipt entry
-        if(bonCommandeInterne.typecommande!='Commande Decharges'){
-            return res.status(400).json({ message: 'its bon internee' });
-        }
-        const decharge = await BonDecharge.findOne({
-            where : {id_boncommandeinterne : id_boncommandeinterne}
-        })
-        if(decharge){
-            return res.status(400).json({ message: 'already done'  });
-        }
-        
-        if(bonCommandeInterne.validation!=3){
-            return res.status(400).json({ message: 'its not validated yet ' });
-        } ;
 
+        if (!bonCommandeInterne) {
+            return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
+        }
+
+        // Check if it's a 'Commande Decharges'
+        if (bonCommandeInterne.typecommande !== 'Commande Decharges') {
+            return res.status(400).json({ message: 'It\'s not a Commande Decharges' });
+        }
+
+        // Check if boncommandeinterne is already processed
+        const decharge = await BonDecharge.findOne({
+            where: { id_boncommandeinterne: id_boncommandeinterne }
+        });
+        if (decharge) {
+            return res.status(400).json({ message: 'Bon decharge already created' });
+        }
+
+        // Check if boncommandeinterne is validated
+        if (bonCommandeInterne.validation !== 3) {
+            return res.status(400).json({ message: 'Bon de commande is not validated yet' });
+        }
 
         const id_consommateur = bonCommandeInterne.id_consommateur;
 
+        // Get produits from ProduitsCommandeInterne
+        const produits = await ProduitsCommandeInterne.findAll({
+            where: { id_boncommandeinterne: id_boncommandeinterne }
+        });
 
-        // retrv id consumer from 
+        // Check if accorded quantity <= available quantity - seuil for each produit
+        for (const produit of produits) {
+            const availableQuantity = produit.quantity - produit.seuil;
+            if (produit.accordedquantity > availableQuantity) {
+                return res.status(400).json({
+                    message: 'Accorded quantity exceeds available quantity - seuil',
+                    produit: produit.id_produit
+                });
+            }
+        }
+
+        // All validations passed, create bonDecharge and update relevant tables
         const bonDecharge = await BonDecharge.create({
-            id_magasinier: id_magasinier,
             id_consommateur: id_consommateur,
+            id_boncommandeinterne: id_boncommandeinterne,
+            service:service,
             date: date,
-        }, ); 
+        });
 
-        
-        for (const produit of produitsdecharges) {
-           
-            const product = await Produit.findByPk(produit.id);
+        // Update produitsdecharges and product table
+        for (const produit of produits) {
+            const product = await Produit.findByPk(produit.id_produit);
 
             if (!product) {
-               
-                console.error(`Product with ID ${produit.id} not found.`);
-                return res.status(404).json({ success: false, message: `Product with ID ${produit.id} not found.` });
+                console.error(`Product with ID ${produit.id_produit} not found.`);
+                return res.status(404).json({ success: false, message: `Product with ID ${produit.id_produit} not found.` });
             }
 
-            
-            const availableQuantity = Math.max(0, product.quantity - product.seuil); 
+            const availableQuantity = Math.max(0, product.quantity - product.seuil);
+            const accordedQuantity = Math.min(produit.accordedquantity, availableQuantity);
 
-            
-            const accordedQuantity = Math.min(produit.quantity, availableQuantity);
+            // Get observation for the product
+            const observationText = observations.find(obs => obs.id_produit === produit.id_produit)?.observation;
 
-            
             await ProduitsDecharges.create({
-                
                 id_bondecharge: bonDecharge.id,
-                id_produit: produit.id,
+                id_produit: produit.id_produit,
                 dechargedquantity: accordedQuantity,
-                observation : observation,
-            }, ); 
+                observation: observationText || null // Use observation text if found, else null
+            });
 
             await Produit.update({
                 quantity: product.quantity - accordedQuantity
             }, {
-                where: { id: produit.id },
-               
+                where: { id: produit.id_produit },
             });
-
-            if (product.quantity <= product.seuil) {
-                
-                console.log(`Alert: Quantity of product '${product.name}' (${product.quantity}) is below the threshold (${product.seuil}).`);
-            }
         }
 
-      
-
-        res.status(201).json({ success: true, bonDecharge });
+        res.status(201).json({ message: 'Bon decharge created successfully', bonDecharge });
     } catch (error) {
-        console.error('Error creating borrowing receipt:', error);
-        
-        res.status(500).json({ success: false, message: "Error creating borrowing receipt", error: error.message });
+        console.error('Failed to create bon decharge:', error);
+        res.status(500).json({ message: 'Failed to create bon decharge', error: error.message });
     }
 };
  

@@ -6,9 +6,9 @@ const router = express.Router();
 router.use(cors());
 
 router.post('/create', addInventoryState);
-router.put('/update/:id', modifyInventoryState); 
-router.delete('/delete/:id', deleteInventoryState); //done
+router.put('/update/:id', modifyInventoryState);
+router.delete('/delete/:id', deleteInventoryState);
 router.get('/details/:id', viewInventoryState);
-router.put('/validate/:id_inventaire', validateInventoryState);
+router.patch('/validate/:id_inventaire', validateInventoryState);
 
 export default router;

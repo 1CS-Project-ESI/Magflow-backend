@@ -382,3 +382,47 @@ Content-Type: application/json
 {
   "productId" :3
 }
+
+
+###
+POST http://localhost:4000/api/inventaire/create
+{
+  "number": 1,
+  "date": "2024-05-20",
+  "products": [
+    {
+      "produitId": 1,
+      "physicalQuantity": 10,
+      "observation": "Initial inventory count"
+    },
+    {
+      "produitId": 4,
+      "physicalQuantity": 20,
+      "observation": "Initial inventory count"
+    }
+  ]
+}
+
+###
+DELETE http://localhost:4000/api/inventaire/delete/15
+
+###
+UPDATE http://localhost:4000/api/inventaire/update/16
+{
+    "products": [
+        {
+            "id": 1,
+            "physicalQuantity": 11
+        },
+        {
+            "id": 4,
+            "observation": "Updated inventory count for product 4"
+        }
+    ]
+}
+
+### 
+GET http://localhost:4000/api/inventaire/details/16
+
+###
+PATCH http://localhost:4000/api/inventaire/validate/16

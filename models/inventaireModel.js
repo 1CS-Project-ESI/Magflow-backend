@@ -15,7 +15,7 @@ const Inventaire = sequelize.define('inventaire', {
         type: DataTypes.DATE,
         allowNull: false
     },
-    validate: {
+    validation: {
         type: DataTypes.INTEGER,
         defaultValue: 0
     }
@@ -24,37 +24,40 @@ const Inventaire = sequelize.define('inventaire', {
     timestamps: false
 });
 
-
-const EtatStock = sequelize.define('etatStock',
-    {
-      id_produit: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Produit',
-          key: 'id',
-        },
-      },
-      id_inventaire: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Inventaire',
-          key: 'id',
-        },
-      },
-      physicalquantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      observation: {
-        type: DataTypes.STRING,
-        allowNull: true,
+const EtatStock = sequelize.define(
+  'etatStock',
+  {
+    id_produit: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'Produit',
+        key: 'id',
       },
     },
-    {
-      tableName: 'etatstock',
-      timestamps: false
-    }
-  );
+    id_inventaire: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'Inventaire',
+        key: 'id',
+      },
+    },
+    physicalquantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    observation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+  },
+  {
+    tableName: 'etatstock',
+    timestamps: false,
+  }
+);
+
 export { Inventaire, EtatStock };

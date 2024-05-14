@@ -35,27 +35,35 @@ const addInventoryState = async (req, res) => {
     };
 
 const modifyInventoryState = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { physicalQuantity, observation } = req.body;
+  try {
+    const { products } = req.body;
 
-        const etatStock = await EtatStock.findOne({
-            where: { id_inventaire: id }
-        });
+    const updatedStates = [];
+    for (const product of products) {
+        const { id, physicalQuantity, observation } = product;
 
-        if (!etatStock) {
-            return res.status(404).json({ error: 'Inventory state not found' });
+        const etatInventaire = await EtatStock.findByPk(id);
+
+        if (!etatInventaire) {
+            return res.status(404).json({ error: `Inventory state with ID ${id} not found` });
         }
 
-        etatStock.physicalquantity = physicalQuantity;
-        etatStock.observation = observation;
-        await etatStock.save();
+        if (physicalQuantity !== undefined) {
+            etatInventaire.physicalquantity = physicalQuantity;
+        }
+        if (observation !== undefined) {
+            etatInventaire.observation = observation;
+        }
+        await etatInventaire.save();
 
-        res.status(200).json({ message: 'Inventory state updated successfully', etatStock });
-    } catch (error) {
-        console.error('Error updating inventory state:', error);
-        res.status(500).json({ error: 'Failed to update inventory state' });
+        updatedStates.push(etatInventaire);
     }
+
+    res.status(200).json({ message: 'Inventory states updated successfully', updatedStates });
+} catch (error) {
+    console.error('Error updating inventory states:', error);
+    res.status(500).json({ error: 'Failed to update inventory states' });
+}
 };
 
 const deleteInventoryState = async (req, res) => {
@@ -76,58 +84,71 @@ const deleteInventoryState = async (req, res) => {
   };
 
 const viewInventoryState = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const etatInventaire = await EtatStock.findOne({
-            where: { id_inventaire: id }
-        });
+    const etatInventaires = await EtatStock.findAll({
+      where: { id_inventaire: id },
+    });
 
-        if (!etatInventaire) {
-            return res.status(404).json({ error: 'Inventory state not found' });
-        }
-
-        res.status(200).json(etatInventaire);
-    } catch (error) {
-        console.error('Error retrieving inventory state:', error);
-        res.status(500).json({ error: 'Failed to retrieve inventory state' });
+    if (etatInventaires.length === 0) {
+      return res.status(404).json({ error: 'Inventory state not found' });
     }
+
+    const response = await Promise.all(
+      etatInventaires.map(async (etatInventaire) => {
+        const produit = await Produit.findByPk(etatInventaire.id_produit, {
+          attributes: ['name', 'caracteristics', 'quantity', 'seuil'],
+        });
+        return { ...etatInventaire.toJSON(), Produit: produit };
+      })
+    );
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error retrieving inventory state:', error);
+    res.status(500).json({ error: 'Failed to retrieve inventory state' });
+  }
 };
 
 const validateInventoryState = async (req, res) => {
-    try {
-        const { id_inventaire } = req.params;
+  try {
+    const { id_inventaire } = req.params;
 
-        const etatInventaires = await EtatStock.findAll({
-          where: { id_inventaire },
-        });
-    
-        if (etatInventaires.length === 0) {
-          return res.status(404).json({ error: 'Inventory state not found' });
-        }
-    
+    const inventaire = await Inventaire.findByPk(id_inventaire);
 
-        const updatedEtatInventaires = await Promise.all(
-          etatInventaires.map(async (etatInventaire) => {
-            return await etatInventaire.increment('validate', { by: 1 });
-          })
-        );
-    
-
-        for (const etatInventaire of etatInventaires) {
-          const produit = await Produit.findByPk(etatInventaire.id_produit);
-          if (produit) {
-            produit.quantity = etatInventaire.physicalquantity;
-            await produit.save();
-          }
-        }
-
-        res.status(200).json({ message: 'Inventory state validated successfully', updatedEtatInventaires });
-      } catch (error) {
-        console.error('Error validating inventory state:', error);
-        res.status(500).json({ error: 'Failed to validate inventory state' });
-      }
+    if (!inventaire) {
+        return res.status(404).json({ error: 'Inventaire not found' });
     }
 
-export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,validateInventoryState };
+    if (inventaire.validation === 1) {
+        return res.status(400).json({ error: 'Inventory state is already validated' });
+    }
+    
+    inventaire.validation = 1;
+    await inventaire.save();
 
+    const etatInventaires = await EtatStock.findAll({
+        where: { id_inventaire },
+    });
+
+    if (etatInventaires.length === 0) {
+        return res.status(404).json({ error: 'No inventory states found for this inventory' });
+    }
+
+    for (const etatInventaire of etatInventaires) {
+        const produit = await Produit.findByPk(etatInventaire.id_produit);
+        if (produit) {
+            produit.quantity = etatInventaire.physicalquantity;
+            await produit.save();
+        }
+    }
+
+    res.status(200).json({ message: 'Inventory state validated successfully', inventaire });
+} catch (error) {
+    console.error('Error validating inventory state:', error);
+    res.status(500).json({ error: 'Failed to validate inventory state' });
+}
+};
+
+export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,validateInventoryState };

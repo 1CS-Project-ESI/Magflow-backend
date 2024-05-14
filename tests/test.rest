@@ -426,3 +426,6 @@ GET http://localhost:4000/api/inventaire/details/16
 
 ###
 PATCH http://localhost:4000/api/inventaire/validate/16
+
+### 
+GET http://localhost:4000/api/inventaire/all-etat

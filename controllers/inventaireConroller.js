@@ -111,6 +111,17 @@ const viewInventoryState = async (req, res) => {
   }
 };
 
+const getAllInventaires = async (req, res) => {
+    try {
+        const inventaires = await Inventaire.findAll();
+        res.status(200).json(inventaires);
+    } catch (error) {
+        console.error('Error fetching inventaires:', error);
+        res.status(500).json({ error: 'Failed to fetch inventaires' });
+    }
+};
+
+
 const validateInventoryState = async (req, res) => {
   try {
     const { id_inventaire } = req.params;
@@ -124,7 +135,7 @@ const validateInventoryState = async (req, res) => {
     if (inventaire.validation === 1) {
         return res.status(400).json({ error: 'Inventory state is already validated' });
     }
-    
+
     inventaire.validation = 1;
     await inventaire.save();
 
@@ -151,4 +162,45 @@ const validateInventoryState = async (req, res) => {
 }
 };
 
-export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,validateInventoryState };
+const getInventoryDifferences = async (req, res) => {
+  try {
+    const { id_inventaire } = req.params;
+
+    const etatInventaires = await EtatStock.findAll({
+        where: { id_inventaire },
+    });
+
+    if (etatInventaires.length === 0) {
+        return res.status(404).json({ error: 'No inventory states found for this inventory' });
+    }
+
+    const differences = [];
+
+    for (const etatInventaire of etatInventaires) {
+        const produit = await Produit.findByPk(etatInventaire.id_produit);
+        if (produit && produit.quantity !== etatInventaire.physicalquantity) {
+            differences.push({
+                id: produit.id,
+                name: produit.name,
+                caracteristics: produit.caracteristics,
+                quantity: produit.quantity,
+                seuil: produit.seuil,
+                physicalquantity: etatInventaire.physicalquantity,
+                observation: etatInventaire.observation
+            });
+        }
+    }
+
+    if (differences.length === 0) {
+        return res.status(200).json({ message: 'No differences found' });
+    }
+
+    res.status(200).json(differences);
+} catch (error) {
+    console.error('Error retrieving inventory differences:', error);
+    res.status(500).json({ error: 'Failed to retrieve inventory differences' });
+}
+};
+
+
+export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,getAllInventaires,validateInventoryState,getInventoryDifferences };

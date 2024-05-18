@@ -83,34 +83,37 @@ const deleteInventoryState = async (req, res) => {
         }
   };
 
-const viewInventoryState = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const etatInventaires = await EtatStock.findAll({
-      where: { id_inventaire: id },
-    });
-
-    if (etatInventaires.length === 0) {
-      return res.status(404).json({ error: 'Inventory state not found' });
+  const viewInventoryState = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const inventaire = await Inventaire.findByPk(id);
+  
+      const etatInventaires = await EtatStock.findAll({
+        where: { id_inventaire: id },
+      });
+  
+      if (etatInventaires.length === 0) {
+        return res.status(404).json({ error: 'Inventory state not found' });
+      }
+  
+      const response = await Promise.all(
+        etatInventaires.map(async (etatInventaire) => {
+          const produit = await Produit.findByPk(etatInventaire.id_produit, {
+            attributes: ['name', 'caracteristics', 'quantity', 'seuil'],
+          });
+          return { ...etatInventaire.toJSON(), Produit: produit };
+        })
+      );
+  
+      // Send the inventaire and etatInventaires as part of the response
+      res.status(200).json({ inventaire, etatInventaires: response });
+    } catch (error) {
+      console.error('Error retrieving inventory state:', error);
+      res.status(500).json({ error: 'Failed to retrieve inventory state' });
     }
-
-    const response = await Promise.all(
-      etatInventaires.map(async (etatInventaire) => {
-        const produit = await Produit.findByPk(etatInventaire.id_produit, {
-          attributes: ['name', 'caracteristics', 'quantity', 'seuil'],
-        });
-        return { ...etatInventaire.toJSON(), Produit: produit };
-      })
-    );
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error retrieving inventory state:', error);
-    res.status(500).json({ error: 'Failed to retrieve inventory state' });
-  }
-};
-
+  };
+  
 const validateInventoryState = async (req, res) => {
   try {
     const { id_inventaire } = req.params;

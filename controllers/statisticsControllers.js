@@ -1,6 +1,7 @@
 import { EtatStock } from "../models/inventaireModel.js";
 import { BonSortie , ProduitsDecharges,ProduitsServie ,BonCommandeInterne,ProduitsCommandeInterne , BonDecharge , ProduitsCommandes } from "../models/bonsModel.js";
-import {Structure} from "../models/structuresModel.js"
+import {Structure} from "../models/structuresModel.js";
+import { User } from "../models/usersModel.js";
 import { Produit } from "../models/productsModel.js";
 import { Consumer } from "../models/usersModel.js";
 import {sequelize} from '../models/usersModel.js'; 
@@ -436,6 +437,134 @@ const getMostConsumableProductsByStructure = async (req, res) => {
       });
     }
   };
-    
 
-export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser};
+  const getTopConsumersByStructure = async (req, res) => {
+    const { structureId } = req.params;
+  
+    if (!structureId) {
+      return res.status(400).json({
+        message: 'structureId parameter is required',
+      });
+    }
+  
+    try {
+      // Step 1: Fetch consumers by structureId
+      const consumers = await Consumer.findAll({
+        attributes: ['user_id'],
+        where: {
+          id_structure: structureId,
+        },
+      });
+  
+      const consumerIds = consumers.map((consumer) => consumer.user_id);
+  
+      if (consumerIds.length === 0) {
+        return res.status(404).json({
+          message: 'No consumers found for the specified structure',
+        });
+      }
+  
+      // Step 2: Find BonCommandeInterne records for these consumers
+      const internalOrders = await BonCommandeInterne.findAll({
+        attributes: [
+          'id_consommateur',
+          [sequelize.fn('COUNT', sequelize.col('id')), 'order_count'],
+        ],
+        where: {
+          id_consommateur: {
+            [Op.in]: consumerIds,
+          },
+        },
+        group: ['id_consommateur'],
+        order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']],
+      });
+  
+      if (internalOrders.length === 0) {
+        return res.status(404).json({
+          message: 'No internal orders found for the consumers in the specified structure',
+        });
+      }
+  
+      // Step 3: Fetch user details from the users table
+      const userIds = internalOrders.map((order) => order.id_consommateur);
+      const users = await User.findAll({
+        attributes: ['id', 'firstname', 'lastname'],
+        where: {
+          id: {
+            [Op.in]: userIds,
+          },
+        },
+      });
+  
+      // Step 4: Attach user details to the result
+      const result = internalOrders.map((order) => {
+        const user = users.find((user) => user.id === order.id_consommateur);
+        return {
+          user_id: user.id,
+          name: `${user.firstname} ${user.lastname}`,
+          order_count: order.dataValues.order_count,
+        };
+      });
+  
+      res.status(200).json({
+        message: 'Top consumers by internal orders and structure retrieved successfully',
+        data: result,
+      });
+    } catch (error) {
+      console.error('Error retrieving top consumers by internal orders and structure:', error);
+      res.status(500).json({
+        message: 'Error retrieving top consumers by internal orders and structure',
+        error: error.message,
+      });
+    }
+  };    
+
+  const getTotalOrdersByStructure = async (req, res) => {
+    const { structureId } = req.params;
+  
+    if (!structureId) {
+      return res.status(400).json({
+        message: 'structureId parameter is required',
+      });
+    }
+  
+    try {
+      // Step 1: Fetch consumers by structureId
+      const consumers = await Consumer.findAll({
+        attributes: ['user_id'],
+        where: {
+          id_structure: structureId,
+        },
+      });
+  
+      const consumerIds = consumers.map((consumer) => consumer.user_id);
+  
+      if (consumerIds.length === 0) {
+        return res.status(404).json({
+          message: 'No consumers found for the specified structure',
+        });
+      }
+  
+      // Step 2: Count the total number of BonCommandeInterne records for these consumers
+      const totalOrders = await BonCommandeInterne.count({
+        where: {
+          id_consommateur: {
+            [Op.in]: consumerIds,
+          },
+        },
+      });
+  
+      res.status(200).json({
+        message: 'Total number of internal orders by structure retrieved successfully',
+        totalOrders,
+      });
+    } catch (error) {
+      console.error('Error retrieving total number of internal orders by structure:', error);
+      res.status(500).json({
+        message: 'Error retrieving total number of internal orders by structure',
+        error: error.message,
+      });
+    }
+  };
+
+export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure};

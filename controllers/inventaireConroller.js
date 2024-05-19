@@ -121,7 +121,6 @@ const getAllInventaires = async (req, res) => {
     }
 };
 
-
 const validateInventoryState = async (req, res) => {
   try {
     const { id_inventaire } = req.params;

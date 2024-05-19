@@ -26,7 +26,7 @@ router.get('/remaining-products/:CommandId', RemainingProducts);
 router.get('/getcommandproductswithnumber/:number',getAllProductsOfCommandWithNumber);
 router.get('/command/details/:id',getCommandDetails);
 router.get('/consumer-commands/:id',getConsommateurCommands); 
-// router.get('/allcommandsinterne',getAllCommandsInterne);
+router.get('/allcommandsinterne',getAllCommandsInterne);
 router.get('/allbonsortie',getAllBonSorties);
 router.get('/allcomandsforresposnable/:id_structureresponsable',getBonCommandInterneForStructureResponsable);// get product of the responsale struct and the validation = 0 
 router.get('/getAllBonCommandInterneFFordirectorMagazinier',getAllBonCommandInterneFFordirectorMagazinier);

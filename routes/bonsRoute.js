@@ -1,7 +1,7 @@
 import express from "express";
 import {validateToken} from "../middlewares/validateTokenHandler.js";
 
-import {  getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne,getBonReceptionDetails} from "../controllers/bonsController.js";
+import {  getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne,getBonReceptionDetails , getProductMovementSheet} from "../controllers/bonsController.js";
 
 
 const router = express.Router();
@@ -36,5 +36,6 @@ router.delete('/deleteBonDechargeById/:id_bondecharge',deleteBonDechargeById);
 router.post('/receiveBonDecharge/:id_bondecharge',receiveBorrowedProducts);
 router.get('/getAllBonDecharges',getAllBonDecharges);
 router.patch('/validation/:id_boncommandeinterne',validateBonCommandeInterne);
+router.get('/getproductmovementsheet/:productId' , getProductMovementSheet)
 
 export default router;

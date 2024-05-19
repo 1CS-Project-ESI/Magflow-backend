@@ -343,15 +343,11 @@ POST http://localhost:4000/api/bons/create-bon-sortie/18
 Content-Type: application/json
 
 {
-  "id_magasinier": 136,
-  "observation": "Some observation",
-  "service": "Some servicee",
-  "date": "2024-04-25",
-  "produitsServie": [
-    {
-      "id_produit": 1,
-      "servedquantity": 0
-    }
+  "service": "Some Service",
+  "date": "2024-05-12",
+  "observations": [
+    { "id_produit": 25, "observation": "Observation for Product 1" },
+    { "id_produit": 3, "observation": "Observation for Product 2" }
   ]
 }
 
@@ -386,9 +382,57 @@ Content-Type: application/json
   "productId" :3
 }
 
+
 ###
 GET http://localhost:4000/api/bons/allcommandsinterne
 
 
 ###
 GET http://localhost:4000/api/notifications/magasinier/136
+
+
+###
+POST http://localhost:4000/api/inventaire/create
+{
+  "number": 1,
+  "date": "2024-05-20",
+  "products": [
+    {
+      "produitId": 1,
+      "physicalQuantity": 10,
+      "observation": "Initial inventory count"
+    },
+    {
+      "produitId": 4,
+      "physicalQuantity": 20,
+      "observation": "Initial inventory count"
+    }
+  ]
+}
+
+###
+DELETE http://localhost:4000/api/inventaire/delete/15
+
+###
+UPDATE http://localhost:4000/api/inventaire/update/16
+{
+    "products": [
+        {
+            "id": 1,
+            "physicalQuantity": 11
+        },
+        {
+            "id": 4,
+            "observation": "Updated inventory count for product 4"
+        }
+    ]
+}
+
+### 
+GET http://localhost:4000/api/inventaire/details/16
+
+###
+PATCH http://localhost:4000/api/inventaire/validate/16
+
+### 
+GET http://localhost:4000/api/inventaire/all-etat

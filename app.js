@@ -8,11 +8,13 @@ import strctureRoutes from "./routes/structureRoutes.js" ;
 import productRoutes from "./routes/productRoutes.js";
 import bonsRoute from "./routes/bonsRoute.js";
 import fournisseurRoutes  from "./routes/fournisseurRoutes.js";
+import fileUploadRoutes from "./routes/fileUploadRoutes.js"
 import pdfRoutes from "./routes/pdfRoutes.js";
+import statisticsRoute from "./routes/statisticsRoute.js"
 import bodyParser from "body-parser";
 import session from 'express-session';
 import notificationsRoutes from "./routes/notificationsRoutes.js"
-
+import inventaireRoutes from "./routes/inventaireRoutes.js"
 
 
 
@@ -42,7 +44,11 @@ app.use("/api/store", productRoutes);
 app.use("/api/bons",bonsRoute);
 app.use("/api/fournisseur",fournisseurRoutes);
 app.use("/api/pdf",pdfRoutes);
-app.use("/api/notifications",notificationsRoutes)
+app.use("/api/notifications",notificationsRoutes);
+app.use("/api/upload",fileUploadRoutes);
+app.use("/api/inventaire",inventaireRoutes);
+app.use("/api/statistics" , statisticsRoute)
+
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`);

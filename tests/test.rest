@@ -395,6 +395,7 @@ GET http://localhost:4000/api/notifications/magasinier/136
 POST http://localhost:4000/api/inventaire/create
 {
   "number": 1,
+  "articleId" :16,
   "date": "2024-05-20",
   "products": [
     {

@@ -14,7 +14,6 @@ router.use(cors());
 router.post('/create/:id_agentserviceachat',createBonCommande);  // link done 
 router.post('/create-bon-reception/:id_boncommande', createBonRepection);
 router.get('/receptionDetails/:id', getBonReceptionDetails);
-
 router.post('/create-bon-commande-interne/:id_consommateur', createBonCommandeInterne);
 router.post('/create-bon-sortie/:id_boncommandeinterne', createBonSortie);
 router.get('/allcommands', getAllCommands); //link done 

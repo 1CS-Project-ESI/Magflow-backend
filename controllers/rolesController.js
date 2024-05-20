@@ -2,30 +2,6 @@ import asyncHandler from "express-async-handler";
 import {UsersRoles,Role} from "../models/rolesModel.js";
 import {RolePermissions,Permission} from "../models/permissionsModel.js"
 
-// const addRole =asyncHandler (async (req, res) => {
-//     try {
-//         const { roleName } = req.body;
-
-//         // Check if the role name is provided
-//         if (!roleName) {
-//             return res.status(400).json({ message: 'Role name is required' });
-//         }
-
-//         // Check if the role already exists
-//         const existingRole = await Role.findOne({ where: { name: roleName } });
-//         if (existingRole) {
-//             return res.status(400).json({ message: `Role '${roleName}' already exists` });
-//         }
-
-//         // Create the new role
-//         const newRole = await Role.create({ name: roleName });
-
-//         // Return the newly created role
-//         return res.status(201).json({ message: 'Role created successfully', role: newRole });
-//     } catch (error) {
-//         return res.status(500).json({ message: `Error adding role: ${error.message}` });
-//     }
-// });
 
 const getAllRoles = async(req,res)=>{
     try {

@@ -1,67 +1,49 @@
 import { Notification, NotificationSent } from '../models/notificationsModel.js';
+import { io } from '../app.js'; // Import the socket.io instance
 
-const sendNotificationToResponsable = async (bonCommande, id_responsable) => {
-    try {
-        const notification = await Notification.create({
-          message: `Bon de commande interne ${bonCommande.number} requires validation.`
-        });
-        await NotificationSent.create({
-          id_notification: notification.id,
-          id_user: id_responsable
-        });
-      } catch (error) {
-        console.error('Failed to send notification to responsable:', error);
-      }
-    };
-
-const sendNotificationToDirecteur = async (bonCommande, id_directeur) => {
-    try {
-        const notification = await Notification.create({
-          message: `Bon de commande interne ${bonCommande.number} requires validation.`
-        });
-        await NotificationSent.create({
-          id_notification: notification.id,
-          id_user: id_directeur
-        });
-      } catch (error) {
-        console.error('Failed to send notification to directeur:', error);
-      }
-    };
-
-const sendNotificationToMagasinier = async (bonCommande, id_magasinier) => {
+// Function to send a notification
+const sendNotification = async (message, userId) => {
   try {
-    const notification = await Notification.create({
-      message: `Bon de commande interne ${bonCommande.number} is ready for processing.`
-    });
+    const notification = await Notification.create({ message });
+
     await NotificationSent.create({
       id_notification: notification.id,
-      id_user: id_magasinier
+      id_user: userId,
     });
+
+    // Emit the notification event to the specific user room
+    io.to(userId.toString()).emit('notification', {
+      id: notification.id,
+      message: notification.message,
+      date: notification.date,
+    });
+
   } catch (error) {
-    console.error('Failed to send notification to magasinier:', error);
+    console.error('Failed to send notification:', error);
   }
 };
 
+// Function to get notifications for a specific user
 const getNotificationsForRecipientById = async (id) => {
-    try {
-      const recipientNotifications = await NotificationSent.findAll({
-        where: { id_user: id },
-        attributes: ['id_notification'], 
-        raw: true, 
-      });
-  
-      const notificationIds = recipientNotifications.map(notification => notification.id_notification);
-  
-      const notifications = await Notification.findAll({
-        where: { id: notificationIds },
-        attributes: ['message', 'date'],
-      });
-  
-      return notifications;
-    } catch (error) {
-      console.error('Failed to get notifications for recipient:', error);
-      return [];
-    }
-  };
+  try {
+    const recipientNotifications = await NotificationSent.findAll({
+      where: { id_user: id },
+      attributes: ['id_notification'],
+      raw: true,
+    });
 
-export { sendNotificationToResponsable, sendNotificationToDirecteur, sendNotificationToMagasinier, getNotificationsForRecipientById };
+    const notificationIds = recipientNotifications.map(notification => notification.id_notification);
+
+    const notifications = await Notification.findAll({
+      where: { id: notificationIds },
+      attributes: ['message', 'date'],
+    });
+
+    return notifications;
+  } catch (error) {
+    console.error('Failed to get notifications for recipient:', error);
+    return [];
+  }
+};
+
+export { sendNotification, getNotificationsForRecipientById };

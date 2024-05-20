@@ -327,19 +327,11 @@ const generateBonDechargePDF = async (req, res) => {
             throw new Error('Bon de Decharge not found');
         }
 
-        // Fetch Magasinier details
-        const magasinier = await User.findByPk(bonDecharge.id_magasinier);
-        if (!magasinier) {
-            throw new Error('Magasinier not found');
-        }
-
         // Fetch Consommateur details
-        const consommateur = await Consumer.findByPk(bonDecharge.id_consommateur);
+        const consommateur = await User.findByPk(bonDecharge.id_consommateur);
         if (!consommateur) {
-            throw new Error('consommateur not found');
+            throw new Error('Consommateur not found');
         }
-
-        const user = await User.findByPk(bonDecharge.id_consommateur)
 
         // Fetch details of products decharged
         const produitsDecharges = await ProduitsDecharges.findAll({
@@ -350,24 +342,25 @@ const generateBonDechargePDF = async (req, res) => {
         }
 
         // Prepare products details
-        const produitsDetails = await Promise.all(produitsDecharges.map(async (produitDecharge) => {
+        const produitsDetails = [];
+        for (const produitDecharge of produitsDecharges) {
             const produit = await Produit.findByPk(produitDecharge.id_produit);
             if (!produit) {
-                throw new Error('Produit not found');
+                throw new Error(`Produit with ID ${produitDecharge.id_produit} not found`);
             }
-            return {
+            produitsDetails.push({
                 produitName: produit.name || 'N/A',
-                dechargedquantity: produitDecharge.dechargedquantity
-            };
-        }));
+                dechargedquantity: produitDecharge.dechargedquantity,
+                observation: produitDecharge.observation || 'N/A'
+            });
+        }
 
         // Render HTML template with EJS
         const templatePath = path.resolve(fileURLToPath(import.meta.url), '../bonDechargeTemplate.ejs');
         const templateContent = fs.readFileSync(templatePath, 'utf-8');
         const htmlContent = ejs.render(templateContent, {
             bonDecharge,
-            magasinier,
-            user,
+            consommateur,
             produitsDetails
         });
 

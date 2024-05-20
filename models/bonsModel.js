@@ -395,5 +395,10 @@ BonCommandeInterne.hasMany(ProduitsCommandeInterne, {
     foreignKey: 'id_bonsortie',
     as: 'produitsServies' // Alias for the association
   });
+
+  ProduitsDecharges.belongsTo(Produit, { foreignKey: 'id_produit' }); // This defines the association between ProduitsDecharges and Produit
+
+// In your Produit model definition:
+Produit.hasOne(ProduitsDecharges, { foreignKey: 'id_produit' }); // This defines the association between Produit and ProduitsDecharges
   
 export {BonReception, BonCommande, ProduitsCommandes , ProduitsDelivres , BonCommandeInterne , BonSortie,BonDecharge,ProduitsCommandeInterne,ProduitsServie,ProduitsDecharges}

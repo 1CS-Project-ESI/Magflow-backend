@@ -5,11 +5,8 @@ import { Structure } from "../models/structuresModel.js";
 import { Op } from 'sequelize';
 import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
 import {Fournisseur} from "../models/fournisseurModel.js";
-import { sendNotificationToDirecteur, sendNotificationToResponsable, sendNotificationToMagasinier } from "../services/notificationService.js";
+import {sendNotification } from "../services/notificationService.js";
 
-
-
-// send idArticle in the body of creation to retvieve its tva 
 const createBonCommande = async (req, res) => {
     try {
         const { id_agentserviceachat } = req.params;
@@ -197,7 +194,6 @@ const createBonRepection = async (req, res) => {
 //     }
 // };
 
-
 const getAllCommands = async(req,res) =>{
     try {
         const commands =await BonCommande.findAll();
@@ -221,29 +217,26 @@ const getAllProductsOfCommand = async (req, res) => {
     try {
         const { command_id } = req.params;
 
-        // Find the command by ID
         const command = await BonCommande.findByPk(command_id);
 
         if (!command) {
             return res.status(404).json({ message: 'Command not found' });
         }
-        // Find all products delivered for this command
         const productsData = await ProduitsCommandes.findAll({
             where: {
                 id_boncommande: command_id
             },
-            attributes: ['id_produit', 'ordered_quantity'] // Only fetch necessary attributes
+            attributes: ['id_produit', 'ordered_quantity'] 
         });
 
-        // Get details of each product using separate queries
         const products = [];
         for (const productData of productsData) {
             const { id_produit, ordered_quantity } = productData;
             const product = await Produit.findByPk(id_produit, {
-                attributes: ['id', 'name', 'caracteristics'] // Fetch product details
+                attributes: ['id', 'name', 'caracteristics'] 
             });
             if (product) {
-                products.push({ ...product.toJSON(), ordered_quantity }); // Combine product details with ordered quantity
+                products.push({ ...product.toJSON(), ordered_quantity });
             }
         }
 
@@ -265,8 +258,6 @@ const RemainingProducts = async (req, res) => {
             attributes: ['id'],
             raw: true,
         });
-
-        // reception of receptions (array of "bon de receptions")
         const receptionIds = receptions.map(reception => reception.id);
 
         const orderedProducts = await ProduitsCommandes.findAll({
@@ -277,7 +268,6 @@ const RemainingProducts = async (req, res) => {
             raw: true,
         });
 
-        // Retrieve product names
         const productIds = orderedProducts.map(product => product.id_produit);
         const products = await Produit.findAll({
             where: {
@@ -287,7 +277,6 @@ const RemainingProducts = async (req, res) => {
             raw: true,
         });
 
-        // Map ordered quantities to object for easier access
         const orderedMap = orderedProducts.reduce((acc, product) => {
             acc[product.id_produit] = product.ordered_quantity;
             return acc;
@@ -336,7 +325,6 @@ const getProductsWithQuantityDelivered = async (req, res) => {
             return res.status(404).json({ message: 'Command not found' });
         }
 
-        // Find products with received quantity greater than 0 for this command
         const productsData = await ProduitsDelivres.findAll({
             where: {
                 id_boncommande: commandId,
@@ -378,8 +366,6 @@ const getProductsWithQuantityDelivered = async (req, res) => {
 const getAllProductsOfCommandWithNumber = async (req, res) => {
     try {
         const { number } = req.params;
-
-        // Find the command by its number to get the command ID
         const command = await BonCommande.findOne({
             where: { number: number }
         });
@@ -388,16 +374,12 @@ const getAllProductsOfCommandWithNumber = async (req, res) => {
             return res.status(404).json({ message: 'Command not found' });
         }
 
-        // Find all product IDs associated with the command
         const products = await ProduitsCommandes.findAll({
             where: { id_boncommande: command.id },
-            attributes: ['id_produit'] // Only retrieve the product IDs
+            attributes: ['id_produit'] 
         });
 
-        // Extract product IDs
         const productIds = products.map(product => product.id_produit);
-
-        // Find all products associated with the product IDs
         const productsData = await Produit.findAll({
             where: { id: productIds }
         });
@@ -485,7 +467,7 @@ const getBonReceptionDetails = async (req, res) => {
                 produitsDelivres.push({ 
                     ...produit.toJSON(), 
                     receivedquantity,
-                    product_name: produit.name // Include the product name in the object
+                    product_name: produit.name
                 });
             }
         }
@@ -539,7 +521,7 @@ const getCommandDetails = async (req, res) => {
         }
 
         const AllBonRecepttions = await BonReception.findAll({
-            where: { id_boncommande: id }, // Assuming `id_boncommande` links to the command
+            where: { id_boncommande: id }, 
           });
         
 
@@ -647,7 +629,6 @@ const createBonSortie = async (req, res) => {
         const { id_boncommandeinterne } = req.params;
         const { service, date, observations } = req.body;
 
-        // Check if the boncommandeinterne exists
         const bonCommandeInterne = await BonCommandeInterne.findOne({
             where: { id: id_boncommandeinterne }
         });
@@ -656,12 +637,10 @@ const createBonSortie = async (req, res) => {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
 
-        // Check if the boncommandeinterne is of type 'Commande Interne'
         if (bonCommandeInterne.typecommande !== 'Commande Interne') {
             return res.status(400).json({ message: 'It\'s not a Commande Interne' });
         }
 
-        // Check if boncommandeinterne is already processed
         const sortie = await BonSortie.findOne({
             where: { id_boncommandeinterne: id_boncommandeinterne }
         });
@@ -669,17 +648,14 @@ const createBonSortie = async (req, res) => {
             return res.status(400).json({ message: 'Bon de sortie already created' });
         }
 
-        // Check if boncommandeinterne is validated
         if (bonCommandeInterne.validation !== 3) {
             return res.status(400).json({ message: 'Bon de commande is not validated yet' });
         }
 
-        // Get produits from ProduitsCommandeInterne
         const produits = await ProduitsCommandeInterne.findAll({
             where: { id_boncommandeinterne: id_boncommandeinterne }
         });
 
-        // Check if accorded quantity <= available quantity - seuil for each produit
         for (const produit of produits) {
             const availableQuantity = produit.quantity - produit.seuil;
             if (produit.accordedquantity > availableQuantity) {
@@ -690,19 +666,16 @@ const createBonSortie = async (req, res) => {
             }
         }
 
-        // All verifications passed, create bonsortie and produitsServie entries
         const bonSortie = await BonSortie.create({
             id_boncommandeinterne,
             service,
             date
         });
 
-        // Update ProduitsServie and Produit for each produit
         for (const produit of produits) {
-            // Find the corresponding observation text for the product
+
             const observation = observations.find(obs => obs.id_produit === produit.id_produit);
 
-            // Create ProduitsServie entry
             await ProduitsServie.create({
                 id_bonsortie: bonSortie.id,
                 id_produit: produit.id_produit,
@@ -710,13 +683,11 @@ const createBonSortie = async (req, res) => {
                 observation: observation ? observation.observation : null
             });
 
-            // Update quantity in Produit
             await Produit.update(
                 { quantity: sequelize.literal(`quantity - ${produit.accordedquantity}`) },
                 { where: { id: produit.id_produit } }
             );
 
-            // Update observation in Produit if it exists
             if (observation) {
                 await Produit.update(
                     { observation: observation.observation },
@@ -771,21 +742,17 @@ const getAllBonSorties = async(req,res)=>{
 
 const getBonCommandInterneForStructureResponsable = async (req,res) => {
     try {
-        const {id_structureresponsable} = req.params
-        // Find the structureresponsable associated with the given structureId
+        const {id_structureresponsable} = req.params;
         const responsable = await StructureResponsable.findByPk(id_structureresponsable)
-        
 
         if (!responsable) {
             throw new Error('Structure responsable not found');
         }
 
-        // Retrieve all consumers within the structure
         const consumers = await Consumer.findAll({
             where: { id_structure: responsable.id_structure }
         });
 
-        // Get all boncommandinterne made by those consumers
         const bonCommandInterne = await BonCommandeInterne.findAll({
             where: { id_consommateur: consumers.map(consumer => consumer.user_id),
             validation: 0 }
@@ -802,10 +769,9 @@ const getBonCommandInterneForStructureResponsable = async (req,res) => {
 
 const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
     try {
-        const { role } = req.query; // Assuming user role is available in req.user
+        const { role } = req.query; 
         let validationStatus;
 
-        // Check user role and set validation status accordingly
         switch (role) {
             case 'director':
                 validationStatus = 1;
@@ -817,7 +783,6 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
                 return res.status(403).json({ message: 'User role not authorized' });
         }
 
-        // Retrieve bon de command interne based on role and validation status
         const bonCommandInterne = await BonCommandeInterne.findAll({
             where: { validation: validationStatus }
         });
@@ -829,16 +794,11 @@ const getAllBonCommandInterneFFordirectorMagazinier = async (req, res) => {
     }
 };
 
-
-
-
-
 const createBonDecharge = async (req, res) => {
     try {
         const { service, date, observations } = req.body;
         const {id_boncommandeinterne} = req.params
 
-        // Check if the boncommandeinterne exists
         const bonCommandeInterne = await BonCommandeInterne.findOne({
             where: { id: id_boncommandeinterne }
         });
@@ -847,12 +807,10 @@ const createBonDecharge = async (req, res) => {
             return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
 
-        // Check if it's a 'Commande Decharges'
         if (bonCommandeInterne.typecommande !== 'Commande Decharges') {
             return res.status(400).json({ message: 'It\'s not a Commande Decharges' });
         }
 
-        // Check if boncommandeinterne is already processed
         const decharge = await BonDecharge.findOne({
             where: { id_boncommandeinterne: id_boncommandeinterne }
         });
@@ -860,19 +818,16 @@ const createBonDecharge = async (req, res) => {
             return res.status(400).json({ message: 'Bon decharge already created' });
         }
 
-        // Check if boncommandeinterne is validated
         if (bonCommandeInterne.validation !== 3) {
             return res.status(400).json({ message: 'Bon de commande is not validated yet' });
         }
 
         const id_consommateur = bonCommandeInterne.id_consommateur;
 
-        // Get produits from ProduitsCommandeInterne
         const produits = await ProduitsCommandeInterne.findAll({
             where: { id_boncommandeinterne: id_boncommandeinterne }
         });
 
-        // Check if accorded quantity <= available quantity - seuil for each produit
         for (const produit of produits) {
             const availableQuantity = produit.quantity - produit.seuil;
             if (produit.accordedquantity > availableQuantity) {
@@ -883,7 +838,6 @@ const createBonDecharge = async (req, res) => {
             }
         }
 
-        // All validations passed, create bonDecharge and update relevant tables
         const bonDecharge = await BonDecharge.create({
             id_consommateur: id_consommateur,
             id_boncommandeinterne: id_boncommandeinterne,
@@ -891,7 +845,6 @@ const createBonDecharge = async (req, res) => {
             date: date,
         });
 
-        // Update produitsdecharges and product table
         for (const produit of produits) {
             const product = await Produit.findByPk(produit.id_produit);
 
@@ -903,7 +856,6 @@ const createBonDecharge = async (req, res) => {
             const availableQuantity = Math.max(0, product.quantity - product.seuil);
             const accordedQuantity = Math.min(produit.accordedquantity, availableQuantity);
 
-            // Get observation for the product
             const observationText = observations.find(obs => obs.id_produit === produit.id_produit)?.observation;
 
             await ProduitsDecharges.create({
@@ -1001,8 +953,6 @@ const getBonDechargeDetailsById = async (req, res) => {
     try {
         const { id_bondecharge } = req.params;
 
-
-       
         const bonDecharge = await BonDecharge.findByPk(id_bondecharge);
         console.log(bonDecharge);
         if (!bonDecharge) {
@@ -1026,21 +976,18 @@ const getBonDechargeDetailsById = async (req, res) => {
 const deleteBonDechargeById = async (req, res) => {
     try {
         const { id_bondecharge  } = req.params;
-
-        // Find the record by ID
         const bonDecharge = await BonDecharge.findByPk(id_bondecharge);
 
-        // If the record doesn't exist, return an error
+
         if (!bonDecharge) {
             return res.status(404).json({ success: false, message: 'Borrowing receipt not found' });
         }
         const count = await ProduitsDecharges.count({ where: { id_bondecharge: id_bondecharge } });
         console.log("this is the count ",count);
-        // If there are associated ProduitsDecharges, return an error
         if (count > 0) {
             return res.status(400).json({ success: false, message: 'Cannot delete. Borrowing receipt has associated product records' });
         }
-        // Delete the record
+
         await bonDecharge.destroy();
 
         // Return success response
@@ -1051,65 +998,58 @@ const deleteBonDechargeById = async (req, res) => {
     }
 }; 
 
-
 const validateBonCommandeInterne = async (req, res) => {
     try {
-        const { id_boncommandeinterne } = req.params;
-        const { products } = req.body; // id prodcut +acccordProduct 
-
-        const bonCommandeInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
-
-        if (!bonCommandeInterne) {
-            return res.status(404).json({ error: "Bon de commande interne not found" });
+      const { id_boncommandeinterne } = req.params;
+      const { products } = req.body; // id product + accordProduct
+  
+      const bonCommandeInterne = await BonCommandeInterne.findByPk(id_boncommandeinterne);
+  
+      if (!bonCommandeInterne) {
+        return res.status(404).json({ error: "Bon de commande interne not found" });
+      }
+  
+      if (!products || Object.keys(products).length === 0) {
+        bonCommandeInterne.validation++;
+        await bonCommandeInterne.save();
+  
+        if (bonCommandeInterne.validation === 1) {
+          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
+        } else if (bonCommandeInterne.validation === 2) {
+          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
         }
-
-        if (!products || Object.keys(products).length === 0) {
-            bonCommandeInterne.validation++;
-            await bonCommandeInterne.save();
-
-            if (bonCommandeInterne.validation === 1) {
-                sendNotificationToDirecteur(bonCommandeInterne, 34);
-            } else if (bonCommandeInterne.validation === 2) {
-                sendNotificationToMagasinier(bonCommandeInterne, 136);
-            }
-
-            return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantites" });
-        } else {
-            for (const product of products) {
-                const existingProduct = await ProduitsCommandeInterne.findOne({
-                    where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
-                });
-
-                if (!existingProduct) {
-                    return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
-                }
-
-                existingProduct.accordedquantity = product.accordedquantity;
-                await existingProduct.save();
-            }
-
-            bonCommandeInterne.validation++;
-            await bonCommandeInterne.save();
-
-            // const magasinierUsers = await Magasinier.findAll();
-            // const id_magasiniers = magasinierUsers.map(magasinier => magasinier.user_id);
-                
-            // const directeurUsers = await Director.findAll();
-            // const id_directeurs = directeurUsers.map(director => director.user_id);
-
-            if (bonCommandeInterne.validation === 1) {
-                sendNotificationToDirecteur(bonCommandeInterne, 34);
-            } else if (bonCommandeInterne.validation === 2) {
-                sendNotificationToMagasinier(bonCommandeInterne, 136);
-            }
-
-            res.status(200).json({ message: "Bon de commande interne validated successfully" });
+  
+        return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantities" });
+      } else {
+        for (const product of products) {
+          const existingProduct = await ProduitsCommandeInterne.findOne({
+            where: { id_produit: product.id_produit, id_boncommandeinterne: id_boncommandeinterne }
+          });
+  
+          if (!existingProduct) {
+            return res.status(404).json({ error: `Product with ID ${product.id_produit} not found in bon de commande` });
+          }
+  
+          existingProduct.accordedquantity = product.accordedquantity;
+          await existingProduct.save();
         }
+  
+        bonCommandeInterne.validation++;
+        await bonCommandeInterne.save();
+  
+        if (bonCommandeInterne.validation === 1) {
+          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
+        } else if (bonCommandeInterne.validation === 2) {
+          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
+        }
+  
+        res.status(200).json({ message: "Bon de commande interne validated successfully" });
+      }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Internal Server Error" });
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-};
+  };
 
 const getProductMovementSheet = async (req, res) => {
     const { productId } = req.params;

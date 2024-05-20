@@ -7,6 +7,15 @@ const Inventaire = sequelize.define('inventaire', {
         primaryKey: true,
         autoIncrement: true
     },
+    id_article: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'Article',
+        key: 'id',
+      },
+    },
     number: {
         type: DataTypes.INTEGER,
         allowNull: false

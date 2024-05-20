@@ -1,38 +1,38 @@
 import { EtatStock, Inventaire } from '../models/inventaireModel.js';
-import { Produit } from '../models/productsModel.js';
+import { Produit,Article,Chapitre } from '../models/productsModel.js';
+import { ProduitsDelivres, ProduitsServie } from '../models/bonsModel.js';
 
 const addInventoryState = async (req, res) => {
-    try {
-        const { number, date, products } = req.body;
+  try {
+    const { articleId, number, date, products } = req.body;
 
-        const inventaire = await Inventaire.create
-        ({
-             number, 
-             date
-         });
-    
-        for (const product of products) {
-          const { produitId, physicalQuantity, observation } = product;
-          const produit = await Produit.findByPk(produitId);
-    
-          if (!produit) {
+    const inventaire = await Inventaire.create({
+        id_article: articleId,
+        number,
+        date
+    });
+
+    for (const product of products) {
+        const { produitId, physicalQuantity, observation } = product;
+        const produit = await Produit.findByPk(produitId);
+
+        if (!produit) {
             return res.status(404).json({ error: `Product with ID ${produitId} not found` });
-          }
-          
-          const etatStock = await EtatStock.create({
+        }
+
+        const etatStock = await EtatStock.create({
             id_produit: produitId,
             id_inventaire: inventaire.id,
             physicalquantity: physicalQuantity,
             observation,
-          });
-        }
-        res.status(201).json({ message: 'Inventory states added successfully', inventaire });
-      } catch (error) {
-
-        console.error('Error adding inventory states:', error);
-        res.status(500).json({ error: 'Failed to add inventory states' });
-      }
-    };
+        });
+    }
+    res.status(201).json({ message: 'Inventory states added successfully', inventaire });
+} catch (error) {
+    console.error('Error adding inventory states:', error);
+    res.status(500).json({ error: 'Failed to add inventory states' });
+}
+};
 
 const modifyInventoryState = async (req, res) => {
   try {
@@ -82,34 +82,6 @@ const deleteInventoryState = async (req, res) => {
         });
         }
   };
-
-const viewInventoryState = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const etatInventaires = await EtatStock.findAll({
-      where: { id_inventaire: id },
-    });
-
-    if (etatInventaires.length === 0) {
-      return res.status(404).json({ error: 'Inventory state not found' });
-    }
-
-    const response = await Promise.all(
-      etatInventaires.map(async (etatInventaire) => {
-        const produit = await Produit.findByPk(etatInventaire.id_produit, {
-          attributes: ['name', 'caracteristics', 'quantity', 'seuil'],
-        });
-        return { ...etatInventaire.toJSON(), Produit: produit };
-      })
-    );
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error retrieving inventory state:', error);
-    res.status(500).json({ error: 'Failed to retrieve inventory state' });
-  }
-};
 
 const getAllInventaires = async (req, res) => {
     try {
@@ -201,5 +173,131 @@ const getInventoryDifferences = async (req, res) => {
 }
 };
 
+const viewInventoryState = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const etatInventaires = await EtatStock.findAll({
+      where: { id_inventaire: id },
+    });
+
+    if (etatInventaires.length === 0) {
+      return res.status(404).json({ error: 'Inventory state not found' });
+    }
+
+    const inventaire = await Inventaire.findByPk(id);
+    if (!inventaire) {
+      return res.status(404).json({ error: `Inventory with ID ${id} not found` });
+    }
+
+    const article = await Article.findByPk(inventaire.id_article);
+    if (!article) {
+      return res.status(404).json({ error: `Article with ID ${inventaire.id_article} not found` });
+    }
+
+    const chapitre = await Chapitre.findByPk(article.chapter_id);
+    const chapitreName = chapitre ? chapitre.name : 'Unknown';
+    const articleName = article.name;
+
+    const response = await Promise.all(
+      etatInventaires.map(async (etatInventaire) => {
+        try {
+          const produit = await Produit.findByPk(etatInventaire.id_produit);
+          if (!produit) {
+            throw new Error(`Product with ID ${etatInventaire.id_produit} not found`);
+          }
+
+          const reste = await getReste(etatInventaire.id_produit);
+          const entree = await getEntree(etatInventaire.id_produit);
+          const sortie = await getSortie(etatInventaire.id_produit);
+
+          const ecart = etatInventaire.physicalquantity - produit.quantity;
+
+          return {
+            designation: produit.name,
+            n_inventaire: etatInventaire.id_inventaire,
+            reste: reste,
+            entree: entree,
+            sortie: sortie,
+            quantity_logique: produit.quantity,
+            physicalquantity: etatInventaire.physicalquantity,
+            ecart: ecart,
+            obs: etatInventaire.observation || "",
+            produit: {
+              caracteristics: produit.caracteristics,
+              stock_mini: produit.seuil,
+            },
+          };
+        } catch (error) {
+          console.error('Error retrieving inventory state for a product:', error);
+          return null;
+        }
+      })
+    );
+
+    const filteredResponse = response.filter((item) => item !== null);
+
+    res.status(200).json({
+      inventaire: {
+        id: inventaire.id,
+        number: inventaire.number,
+        date: inventaire.date,
+        validation: inventaire.validation,
+      },
+      chapitre: chapitreName,
+      article: articleName,
+      products: filteredResponse,
+    });
+  } catch (error) {
+    console.error('Error retrieving inventory state:', error);
+    res.status(500).json({ error: 'Failed to retrieve inventory state' });
+  }
+};
+
+const getReste = async (produitId) => {
+  try {
+    const lastInventory = await EtatStock.findOne({
+      where: {
+        id_produit: produitId,
+      },
+      order: [['id_inventaire', 'DESC']],
+    });
+    if (!lastInventory) {
+      return 0; 
+    }
+    return lastInventory.physicalquantity;
+  } catch (error) {
+    console.error('Error retrieving last inventory:', error);
+    throw new Error('Failed to retrieve last inventory');
+  }
+};
+
+const getEntree = async (produitId) => {
+  try {
+    const produitsDelivres = await ProduitsDelivres.findAll({
+      where: { id_produit: produitId },
+      attributes: ['receivedquantity'], 
+    });
+
+    return produitsDelivres.reduce((total, produit) => total + produit.receivedquantity, 0);
+  } catch (error) {
+    console.error('Error retrieving incoming quantity:', error);
+    throw new Error('Failed to retrieve incoming quantity');
+  }
+};
+
+const getSortie = async (produitId) => {
+  try {
+    const produitsServie = await ProduitsServie.findAll({
+      where: { id_produit: produitId },
+      attributes: ['servedquantity'],
+    });
+
+    return produitsServie.reduce((total, produit) => total + produit.servedquantity, 0);
+  } catch (error) {
+    console.error('Error retrieving outgoing quantity:', error);
+    throw new Error('Failed to retrieve outgoing quantity');
+  }
+};
 
 export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,getAllInventaires,validateInventoryState,getInventoryDifferences };

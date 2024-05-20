@@ -1051,4 +1051,110 @@ const validateBonCommandeInterne = async (req, res) => {
     }
   };
 
-export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne,getBonReceptionDetails}
+const getProductMovementSheet = async (req, res) => {
+    const { productId } = req.params;
+  
+    if (!productId) {
+      return res.status(400).json({
+        message: 'productId parameter is required',
+      });
+    }
+  
+    try {
+      // Step 1: Check if the product exists
+      const product = await Produit.findByPk(productId);
+  
+      if (!product) {
+        return res.status(404).json({
+          message: 'Product not found',
+        });
+      }
+  
+      // Step 2: Fetch product movements if the product exists
+      // Fetch product deliveries
+      const deliveries = await ProduitsDelivres.findAll({
+        where: { id_produit: productId },
+        include: [
+          {
+            model: BonReception,
+            as: 'bonReception',
+            attributes: ['deliverydate']
+          }
+        ]
+      });
+  
+      // Fetch product decharges
+      const decharges = await ProduitsDecharges.findAll({
+        where: { id_produit: productId },
+        include: [
+          {
+            model: BonDecharge,
+            as: 'bonDecharge',
+            attributes: ['date']
+          }
+        ]
+      });
+  
+      // Fetch product sorties
+      const sorties = await ProduitsServie.findAll({
+        where: { id_produit: productId },
+        include: [
+          {
+            model: BonSortie,
+            as: 'bonSortie',
+            attributes: ['date']
+          }
+        ]
+      });
+  
+      // Combine all movements and sort by date
+      const movements = [];
+  
+      deliveries.forEach(delivery => {
+        movements.push({
+          type: 'Reception',
+          date: delivery.bonReception.deliverydate,
+          quantity: delivery.receivedquantity
+        });
+      });
+  
+      decharges.forEach(decharge => {
+        movements.push({
+          type: 'Decharge',
+          date: decharge.bonDecharge.date,
+          quantity: decharge.dechargedquantity
+        });
+      });
+  
+      sorties.forEach(sortie => {
+        movements.push({
+          type: 'Sortie',
+          date: sortie.bonSortie.date,
+          quantity: sortie.servedquantity
+        });
+      });
+  
+      movements.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+      // Step 3: Return the result
+      res.status(200).json({
+        message: 'Product movement sheet retrieved successfully',
+        data: {
+          product: {
+            id: productId,
+            name: product.name,
+            // Include other product details as needed
+          },
+          movements: movements
+        }
+      });
+  
+    } catch (error) {
+      console.error('Error retrieving product movement sheet:', error);
+      res.status(500).json({
+        message: 'Error retrieving product movement sheet',
+        error: error.message,
+      });
+    }
+  };
+export {getAllBonCommandInterneFFordirectorMagazinier ,createBonCommande ,createBonRepection, getAllCommands,getAllReception ,getAllProductsOfCommand, getProductsWithQuantityDelivered, RemainingProducts,getAllProductsOfCommandWithNumber, getCommandDetails, createBonCommandeInterne, getcommandinternedetails, getConsommateurCommands, getAllCommandsInterne, createBonSortie, getAllBonSorties,getBonCommandInterneForStructureResponsable, createBonDecharge,receiveBorrowedProducts,getAllBonDecharges,getBonDechargeDetailsById,deleteBonDechargeById,validateBonCommandeInterne,getBonReceptionDetails , getProductMovementSheet}

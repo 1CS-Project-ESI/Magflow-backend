@@ -361,5 +361,44 @@ BonCommandeInterne.hasMany(ProduitsCommandeInterne, {
     targetKey: 'id',
     as: 'boncommande'
   });
+
+  BonReception.hasMany(ProduitsDelivres, {
+    foreignKey: 'id_bonreception',
+    sourceKey: 'id',
+    as: 'deliveredProducts'
+  });
+  
+  ProduitsDelivres.belongsTo(BonReception, {
+    foreignKey: 'id_bonreception',
+    targetKey: 'id',
+    as: 'bonReception'
+  });
+  
+  BonDecharge.hasMany(ProduitsDecharges, {
+    foreignKey: 'id_bondecharge',
+    sourceKey: 'id',
+    as: 'dechargedProducts'
+  });
+  
+  ProduitsDecharges.belongsTo(BonDecharge, {
+    foreignKey: 'id_bondecharge',
+    targetKey: 'id',
+    as: 'bonDecharge'
+  });
+
+  ProduitsServie.belongsTo(BonSortie, {
+    foreignKey: 'id_bonsortie',
+    as: 'bonSortie' // Alias for the association
+  });
+  
+  BonSortie.hasMany(ProduitsServie, {
+    foreignKey: 'id_bonsortie',
+    as: 'produitsServies' // Alias for the association
+  });
+
+  ProduitsDecharges.belongsTo(Produit, { foreignKey: 'id_produit' }); // This defines the association between ProduitsDecharges and Produit
+
+// In your Produit model definition:
+Produit.hasOne(ProduitsDecharges, { foreignKey: 'id_produit' }); // This defines the association between Produit and ProduitsDecharges
   
 export {BonReception, BonCommande, ProduitsCommandes , ProduitsDelivres , BonCommandeInterne , BonSortie,BonDecharge,ProduitsCommandeInterne,ProduitsServie,ProduitsDecharges}

@@ -566,9 +566,8 @@ const createBonCommandeInterne = async (req, res) => {
             date,
             typecommande
         });
- 
-        sendNotificationToResponsable(bonCommandeInterne,id_responsable);
 
+        sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, id_responsable)
 
         for (const produitCommande of produitsCommandes) {
             await ProduitsCommandeInterne.create({

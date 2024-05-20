@@ -567,4 +567,42 @@ const getMostConsumableProductsByStructure = async (req, res) => {
     }
   };
 
-export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure};
+
+  const getUserCommandCounts = async(req,res) =>{
+    try {
+      const {userId} = req.params;
+      // Find commands associated with the user
+      const commands = await BonCommandeInterne.findAll({
+        where: {
+          id_consommateur: userId
+        }
+      });
+  
+      // Initialize counters for different validation values
+      let validation_0_count = 0;
+      let validation_1_2_count = 0;
+      let validation_3_count = 0;
+  
+      // Count commands based on validation value
+      commands.forEach(command => {
+        if (command.validation === 0) {
+          validation_0_count++;
+        } else if (command.validation === 1 || command.validation === 2) {
+          validation_1_2_count++;
+        } else if (command.validation === 3) {
+          validation_3_count++;
+        }
+      });
+  
+      res.status(200).json( {
+        validation_0_count,
+        validation_1_2_count,
+        validation_3_count
+      });
+    } catch (error) {
+      console.error("Error retrieving user command counts:", error);
+      throw error;
+    }
+  }
+
+export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts};

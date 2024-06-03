@@ -28,8 +28,6 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "path": "^0.12.7",
-    "pdf-creator-node": "^2.3.5",
-    "pdfkit": "^0.15.0",
     "pg": "^8.11.3",
     "redis": "^4.6.13",
     "sequelize": "^6.37.1",

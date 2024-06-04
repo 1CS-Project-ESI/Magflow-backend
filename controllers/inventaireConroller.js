@@ -25,6 +25,7 @@ const addInventoryState = async (req, res) => {
             id_produit: produitId,
             id_inventaire: inventaire.id,
             physicalquantity: physicalQuantity,
+            logicalquantity : produit.quantity ,
             observation,
         });
     }
@@ -280,7 +281,7 @@ const getEntree = async (produitId) => {
     const produitsDelivres = await ProduitsDelivres.findAll({
       where: { id_produit: produitId },
       attributes: ['receivedquantity'], 
-    });
+    }); 
 
     return produitsDelivres.reduce((total, produit) => total + produit.receivedquantity, 0);
   } catch (error) {

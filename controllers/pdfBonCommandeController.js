@@ -9,8 +9,9 @@ import htmlPdf from 'html-pdf';
 import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes , BonReception , ProduitsDelivres , BonDecharge , ProduitsDecharges} from '../models/bonsModel.js';
 import { Consumer, User ,AgentServiceAchat , Magasinier} from '../models/usersModel.js';
 import { Fournisseur } from '../models/fournisseurModel.js';
-import { Produit } from '../models/productsModel.js';
 import { Structure } from '../models/structuresModel.js';
+import { EtatStock, Inventaire } from '../models/inventaireModel.js';
+import { Produit,Article,Chapitre } from '../models/productsModel.js';
 
 const generatePDF = async (req, res) => {
     try {
@@ -383,5 +384,79 @@ const generateBonDechargePDF = async (req, res) => {
     }
 };
 
+const generateInventoryPDF = async (req, res) => {
+    try {
+      const { inventaireId } = req.params;
+  
+      // Fetch Inventaire details
+      const inventaire = await Inventaire.findByPk(inventaireId);
+      if (!inventaire) {
+        return res.status(404).json({ error: `Inventaire with ID ${inventaireId} not found` });
+      }
+  
+      // Fetch the article details
+      const article = await Article.findByPk(inventaire.id_article);
+      if (!article) {
+        return res.status(404).json({ error: `Article with ID ${inventaire.id_article} not found` });
+      }
+  
+      // Fetch details of products in the inventory
+      const etatStocks = await EtatStock.findAll({
+        where: { id_inventaire: inventaireId }
+      });
+      if (!etatStocks || etatStocks.length === 0) {
+        return res.status(404).json({ error: 'Etat Stocks not found' });
+      }
+  
+      // Prepare products details
+      const produitsDetails = [];
+      for (const etatStock of etatStocks) {
+        const produit = await Produit.findByPk(etatStock.id_produit);
+        if (!produit) {
+          return res.status(404).json({ error: `Produit with ID ${etatStock.id_produit} not found` });
+        }
+        produitsDetails.push({
+          produitName: produit.name || 'N/A',
+          physicalquantity: etatStock.physicalquantity,
+          observation: etatStock.observation || 'N/A',
+          logicalquantity : etatStock.logicalquantity
+        });
+        console.log(produitsDetails)
+      }
+  
+      // Generate PDF
+      await createInventoryPDF(inventaire, article, produitsDetails, res);
+  
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      res.status(500).json({ error: 'Failed to generate PDF' });
+    }
+  };
+  
+  const createInventoryPDF = async (inventaire, article, produitsDetails, res) => {
+    // Render HTML template with EJS
+    const templatePath = path.resolve(fileURLToPath(import.meta.url), '../etatInventaireTemplate.ejs');
+    const templateContent = fs.readFileSync(templatePath, 'utf-8');
+    const htmlContent = ejs.render(templateContent, {
+      inventaire,
+      article,
+      produitsDetails
+    });
+  
+    // Define PDF options
+    const pdfOptions = { format: 'A4' };
+  
+    // Generate PDF
+    const pdfPath = `etatInventaire_${inventaire.id}.pdf`;
+    htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+      if (err) {
+        console.error('Failed to generate Etat Inventaire PDF:', err);
+        return res.status(500).json({ error: 'Failed to generate Etat Inventaire PDF' });
+      }
+      console.log('Etat Inventaire PDF generated successfully:', response);
+      res.status(200).json({ pdfPath });
+    });
+  };
 
-export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF , generateBonDechargePDF}
+
+export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF , generateBonDechargePDF , generateInventoryPDF}

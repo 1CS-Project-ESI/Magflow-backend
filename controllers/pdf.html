@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon de Decharge</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        hr{
+            width: 100%;
+            border-color: black;
+            font-weight: bold;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20mm;
+            box-sizing: border-box;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .date {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .pdfimage {
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .pdfimage img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .header, .footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 20mm;
+            width: calc(100% - 40mm);
+        }
+
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .signature-section div {
+            width: 30%;
+            text-align: center;
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        @media print {
+            body {
+                position: relative;
+                height: 100%;
+            }
+
+            .footer {
+                width: 100%;
+                position: absolute;
+                bottom: -12px;
+                left: 17px;
+                line-height: 0.5;
+                
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header1">
+        <p>Direction</p>
+        <p>Secrétariat Général</p>
+        <p>Sous-Direction des Finances, et des Moyens</p>
+    </div>
+    <div class="header">
+        <h2>DECHARGE N° <%= bonDecharge.id %></h2>
+    </div>
+
+    <table>
+        <tr>
+            <th>Le preneur</th>
+            <td><%= consommateur ? consommateur.firstname + ' ' + consommateur.lastname : 'N/A' %></td>
+        </tr>
+    </table>
+    
+    <h2>Produits Decharges</h2>
+    <table>
+        <tr>
+            <th>DESIGNATION DES ARTICLES</th>
+            <th>NUMEROS DE REFERENCE</th>
+            <th>Quantité</th>
+            <th>Observation</th>
+        </tr>
+        <% produitsDetails.forEach(produit => { %>
+            <tr>
+                <td><%= produit.produitName %></td>
+                <td><%= produit.reference || 'N/A' %></td>
+                <td><%= produit.dechargedquantity %></td>
+                <td><%= produit.observation || 'N/A' %></td>
+            </tr>
+        <% }); %>
+    </table>
+
+    <div class="date">
+        <p>Date: <%= bonDecharge.date %></p>
+    </div>
+
+    <div class="signature-section">
+        <div>
+            <p>Le Magasinier</p>
+        </div>
+        <div>
+            <p>Le Directeur</p>
+        </div>
+        <div>
+            <p>Le Preneur</p>
+        </div>
+    </div>
+    <div class="footer">
+        <hr>
+        <p>الجزائر، سيدي بلعباس، 22016، الوئام 73ص ب، 1945ماي 08 المدرسة العليا للإعلام الآلي</p>
+        <p>École Supérieure en Informatique 08 Mai 1945, BP N° 73 EL WIAM, 22016, Sidi Bel Abbes, Algerie</p>
+        <p>Tel/Fax: (213) 48 74 94 50 / (213) 48 74 94 52</p>
+        <p>http://www.esi-sba.dz/</p>
+    </div>
+
+</body>
+
+</html>

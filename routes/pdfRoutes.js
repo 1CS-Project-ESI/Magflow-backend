@@ -1,8 +1,9 @@
 import express from "express";
+import {generatePDF,generateBonSortiePDF, generateBonCommandePDF, generateBonReceptionPDF, generateBonDechargePDF,generateInventoryPDF} from "../controllers/pdfBonCommandeController.js";
+
 
 const router = express.Router();
 import cors from "cors";
-import {generatePDF,generateBonSortiePDF, generateBonCommandePDF, generateBonReceptionPDF, generateBonDechargePDF,generateInventoryPDF} from "../controllers/pdfBonCommandeController.js";
 router.use(cors());
 
 router.get('/pdfcommandeinterne/:bonCommandeInterneId' , generatePDF)

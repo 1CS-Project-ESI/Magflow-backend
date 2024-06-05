@@ -1,8 +1,8 @@
 import express from 'express';
-import cors from 'cors';
 import { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState, getAllInventaires,validateInventoryState} from '../controllers/inventaireConroller.js';
 
 const router = express.Router();
+import cors from "cors";
 router.use(cors());
 
 router.post('/create', addInventoryState);

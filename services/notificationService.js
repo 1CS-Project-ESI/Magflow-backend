@@ -1,6 +1,8 @@
 import { Notification, NotificationSent, FCMToken } from '../models/notificationsModel.js';
-import { sendNotification } from '../config/pushNotification.json';
+import { sendNotification } from '../config/sendNotification.js' ;
 
+
+// send notif web
 const sendNotificationToUser = async (req, res) => {
   try {
     const { message } = req.body;
@@ -25,9 +27,10 @@ const sendNotificationToUser = async (req, res) => {
   }
 };
 
+
 const getNotificationsForRecipientById = async (req, res) => {
   try {
-    const id = req.user.id; // Assuming you have middleware to get the user ID
+    const id = req.user.id; 
 
     const recipientNotifications = await NotificationSent.findAll({
       where: { id_user: id },
@@ -48,4 +51,46 @@ const getNotificationsForRecipientById = async (req, res) => {
   }
 };
 
-export { sendNotificationToUser, getNotificationsForRecipientById };
+// send notif mobile
+const sendNotificationToUserMobile = async (userId, notificationPayload) => {
+  try {
+    const fcmTokenRecord = await FCMToken.findOne({ where: { id_user: userId } });
+    if (!fcmTokenRecord) {
+      console.error('FCM token not found for user:', userId);
+      return;
+    }
+    const fcmToken = fcmTokenRecord.token;
+
+    const message = notificationPayload.notification.message; 
+
+    await admin.messaging().sendToDevice(fcmToken, { notification: { message } });
+    console.log('Notification sent successfully to user:', userId);
+
+    // Create an instance in the NotificationSent table
+    await NotificationSent.create({ id_notification: notificationPayload.id, id_user: userId });
+  } catch (error) {
+    console.error('Error sending notification to user:', userId, error);
+  }
+};
+
+// send notif broadcast mobile
+const sendNotificationToAllUsers = async (notificationPayload) => {
+  try {
+    const allFCMTokens = await FCMToken.findAll();
+    allFCMTokens.forEach(async (fcmTokenRecord) => {
+      await sendNotificationToUserMobile(fcmTokenRecord.id_user, notificationPayload);
+    });
+  } catch (error) {
+    console.error('Error sending notification to all users:', error);
+  }
+};
+
+
+const notificationPayload = {
+  notification: {
+    message: 'Your notification body'
+  }
+};
+
+
+export { sendNotificationToUser, getNotificationsForRecipientById, sendNotificationToAllUsers, sendNotificationToUserMobile};

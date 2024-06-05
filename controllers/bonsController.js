@@ -5,7 +5,7 @@ import { Structure } from "../models/structuresModel.js";
 import { Op } from 'sequelize';
 import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
 import {Fournisseur} from "../models/fournisseurModel.js";
-import {sendNotification } from "../services/notificationService.js";
+import { sendNotificationToUser } from "../services/notificationService.js";
 
 const createBonCommande = async (req, res) => {
     try {
@@ -251,66 +251,72 @@ const RemainingProducts = async (req, res) => {
     try {
         const CommandId = req.params.CommandId;
 
-        const receptions = await BonReception.findAll({
-            where: {
-                id_boncommande: CommandId,
-            },
-            attributes: ['id'],
-            raw: true,
-        });
-        const receptionIds = receptions.map(reception => reception.id);
+       const receptions = await BonReception.findAll({
+        where: {
+            id_boncommande: CommandId,
+        },
+        attributes: ['id'],
+        raw: true,
+    });
+    const receptionIds = receptions.map(reception => reception.id);
 
-        const orderedProducts = await ProduitsCommandes.findAll({
-            where: {
-                id_boncommande: CommandId,
-            },
-            attributes: ['id_produit', 'ordered_quantity'],
-            raw: true,
-        });
 
-        const productIds = orderedProducts.map(product => product.id_produit);
-        const products = await Produit.findAll({
-            where: {
-                id: productIds,
-            },
-            attributes: ['id', 'name'],
-            raw: true,
-        });
+    const orderedProducts = await ProduitsCommandes.findAll({
+        where: {
+            id_boncommande: CommandId,
+        },
+        attributes: ['id_produit', 'ordered_quantity'],
+        raw: true,
+    });
 
-        const orderedMap = orderedProducts.reduce((acc, product) => {
-            acc[product.id_produit] = product.ordered_quantity;
-            return acc;
-        }, {});
 
-        const receivedProducts = await ProduitsDelivres.findAll({
-            where: {
-                id_bonreception: receptionIds,
-            },
-            attributes: ['id_produit', 'receivedquantity'],
-            raw: true,
-        });
+    const productIds = orderedProducts.map(product => product.id_produit);
+    const products = await Produit.findAll({
+        where: {
+            id: productIds,
+        },
+        attributes: ['id', 'name'],
+        raw: true,
+    });
 
-        const remainingProducts = orderedProducts.map(product => {
-            const receivedProduct = receivedProducts.find(item => item.id_produit === product.id_produit);
-            // if the products doesn't exist in the produitsDelivres table then received quantity = 0 
-            const receivedQuantity = receivedProduct ? receivedProduct.receivedquantity : 0;
-            const remainingQuantity = product.ordered_quantity - receivedQuantity;
-            // Find the product name corresponding to the current product ID
-            const productName = products.find(p => p.id === product.id_produit)?.name || 'Unknown';
-            return {
-                productId: product.id_produit,
-                name: productName, // Include product name
-                orderedQuantity: product.ordered_quantity,
-                receivedQuantity: receivedQuantity,
-                remainingQuantity: remainingQuantity
-            };
-        });
 
-        res.status(200).json({ remainingProducts: remainingProducts });
-    } catch (error) {
-        console.error('Error fetching remaining products:', error);
-        res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
-    }
+    const receivedProducts = await ProduitsDelivres.findAll({
+        where: {
+            id_bonreception: receptionIds,
+        },
+        attributes: ['id_produit', 'receivedquantity'],
+        raw: true,
+    });
+
+
+    const receivedMap = receivedProducts.reduce((acc, item) => {
+        if (!acc[item.id_produit]) {
+            acc[item.id_produit] = 0;
+        }
+        acc[item.id_produit] += item.receivedquantity;
+        return acc;
+    }, {});
+
+
+    const remainingProducts = orderedProducts.map(product => {
+        const receivedQuantity = receivedMap[product.id_produit] || 0;
+        const remainingQuantity = product.ordered_quantity - receivedQuantity;
+
+        const productName = products.find(p => p.id === product.id_produit)?.name || 'Unknown';
+        return {
+            productId: product.id_produit,
+            name: productName,
+            orderedQuantity: product.ordered_quantity,
+            receivedQuantity: receivedQuantity,
+            remainingQuantity: remainingQuantity,
+        };
+    });
+
+    res.status(200).json({ remainingProducts: remainingProducts });
+} catch (error) {
+    console.error('Error fetching remaining products:', error);
+    res.status(500).json({ message: 'Failed to fetch remaining products', error: error.message });
+}
 };
 
 
@@ -566,9 +572,8 @@ const createBonCommandeInterne = async (req, res) => {
             date,
             typecommande
         });
- 
-        sendNotificationToResponsable(bonCommandeInterne,id_responsable);
 
+        sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, id_responsable)
 
         for (const produitCommande of produitsCommandes) {
             await ProduitsCommandeInterne.create({
@@ -1014,10 +1019,12 @@ const validateBonCommandeInterne = async (req, res) => {
         await bonCommandeInterne.save();
   
         if (bonCommandeInterne.validation === 1) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
         } else if (bonCommandeInterne.validation === 2) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
-        }
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
+        } else if (bonCommandeInterne.validation === 3) {
+            sendNotificationToUser(`Your command ${bonCommandeInterne.number} is validated and ready for pickup.`, bonCommandeInterne.id_consommateur);
+        };
   
         return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantities" });
       } else {
@@ -1038,9 +1045,9 @@ const validateBonCommandeInterne = async (req, res) => {
         await bonCommandeInterne.save();
   
         if (bonCommandeInterne.validation === 1) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
         } else if (bonCommandeInterne.validation === 2) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
         }
   
         res.status(200).json({ message: "Bon de commande interne validated successfully" });

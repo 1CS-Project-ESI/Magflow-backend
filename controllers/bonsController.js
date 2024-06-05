@@ -5,7 +5,7 @@ import { Structure } from "../models/structuresModel.js";
 import { Op } from 'sequelize';
 import { StructureResponsable , Consumer, Director, Magasinier } from "../models/usersModel.js";
 import {Fournisseur} from "../models/fournisseurModel.js";
-import {sendNotification } from "../services/notificationService.js";
+import { sendNotificationToUser } from "../services/notificationService.js";
 
 const createBonCommande = async (req, res) => {
     try {
@@ -567,7 +567,7 @@ const createBonCommandeInterne = async (req, res) => {
             typecommande
         });
 
-        sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, id_responsable)
+        sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, id_responsable)
 
         for (const produitCommande of produitsCommandes) {
             await ProduitsCommandeInterne.create({
@@ -1013,11 +1013,11 @@ const validateBonCommandeInterne = async (req, res) => {
         await bonCommandeInterne.save();
   
         if (bonCommandeInterne.validation === 1) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
         } else if (bonCommandeInterne.validation === 2) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
         } else if (bonCommandeInterne.validation === 3) {
-            sendNotification(`Your command ${bonCommandeInterne.number} is validated and ready for pickup.`, bonCommandeInterne.id_consommateur);
+            sendNotificationToUser(`Your command ${bonCommandeInterne.number} is validated and ready for pickup.`, bonCommandeInterne.id_consommateur);
         };
   
         return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantities" });
@@ -1039,9 +1039,9 @@ const validateBonCommandeInterne = async (req, res) => {
         await bonCommandeInterne.save();
   
         if (bonCommandeInterne.validation === 1) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} requires validation.`, 34);
         } else if (bonCommandeInterne.validation === 2) {
-          sendNotification(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
+          sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
         }
   
         res.status(200).json({ message: "Bon de commande interne validated successfully" });

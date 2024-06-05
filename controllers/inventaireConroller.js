@@ -1,7 +1,7 @@
 import { EtatStock, Inventaire } from '../models/inventaireModel.js';
 import { Produit,Article,Chapitre } from '../models/productsModel.js';
 import { ProduitsDelivres, ProduitsServie } from '../models/bonsModel.js';
-import { sendNotification } from '../services/notificationService.js';
+import { sendNotificationToUser} from '../services/notificationService.js';
 
 const addInventoryState = async (req, res) => {
   try {
@@ -29,7 +29,7 @@ const addInventoryState = async (req, res) => {
             observation,
         });
     }
-    sendNotification(`Inventaire ${inventaire.number} requires validation.`, 34);
+    sendNotificationToUser(`Inventaire ${inventaire.number} requires validation.`, 34);
 
     res.status(201).json({ message: 'Inventory states added successfully', inventaire });
 } catch (error) {

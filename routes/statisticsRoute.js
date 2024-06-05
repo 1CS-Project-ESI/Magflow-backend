@@ -1,5 +1,5 @@
 import express from "express";
-import {calculateQuantitiesByProduct , calculateStockValue, getMostConsumableProductsByStructure,fetchProductsWithPositiveStock, getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts,getTopConsumersForProduct} from "../controllers/statisticsControllers.js"
+import {calculateQuantitiesByProduct , calculateStockValue, getMostConsumableProductsByStructure,fetchProductsWithPositiveStock, getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts,getTopConsumersForProduct,getTopConsumersForProductByDate} from "../controllers/statisticsControllers.js"
 
 const router = express.Router();
 import cors from "cors";
@@ -13,6 +13,7 @@ router.get('/mostconsumableproductsbyuser/:user_id',getMostConsumableProductsByU
 router.get('/gettopconsumersbystructure/:structureId',getTopConsumersByStructure);
 router.get('/getTotalOrdersByStructure/:structureId' , getTotalOrdersByStructure);
 router.get('/getusercommandcounts/:userId',getUserCommandCounts);
-router.get('/consumerproduct/:productId',getTopConsumersForProduct)
+router.get('/consumerproduct/:productId',getTopConsumersForProduct);
+router.get('/consumerproductbydate/:productId',getTopConsumersForProductByDate)
 
 export default router;

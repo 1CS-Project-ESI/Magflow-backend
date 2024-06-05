@@ -52,21 +52,23 @@ const generatePDF = async (req, res) => {
             bonCommandeInterne,
             user,
             structure,
-            productDetails // Change produitsCommandeInterne to productDetails
+            productDetails
         });
 
         // Define PDF options
         const options = { format: 'Letter' };
 
-        // Generate PDF
-        const pdfPath = `boncommande_${bonCommandeInterneId}.pdf`;
-        htmlPdf.create(htmlContent, options).toFile(pdfPath, (err, response) => {
+        // Generate PDF in-memory
+        htmlPdf.create(htmlContent, options).toBuffer((err, buffer) => {
             if (err) {
                 console.error('Failed to generate PDF:', err);
                 return res.status(500).json({ error: 'Failed to generate PDF' });
             }
-            console.log('PDF generated successfully:', response);
-            return res.status(200).json({ pdfPath });
+
+            // Send the PDF as a response to prompt download
+            res.setHeader('Content-Disposition', `attachment; filename=boncommande_${bonCommandeInterneId}.pdf`);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.send(buffer);
         });
     } catch (error) {
         console.error('Failed to generate PDF:', error);

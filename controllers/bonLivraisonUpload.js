@@ -1,4 +1,3 @@
-import { User } from "../models/usersModel.js";
 import {BonReception} from "../models/bonsModel.js";
 import multer from 'multer';
 import path from 'path';
@@ -10,7 +9,7 @@ const currentDir = process.cwd();
 // Define storage for uploaded files
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const destinationDir = path.join(currentDir, 'uploads', 'profilePics'); // Define the destination directory path
+        const destinationDir = path.join(currentDir, 'uploads', 'BonsLivraisons'); // Define the destination directory path
         if (!fs.existsSync(destinationDir)) {
             fs.mkdirSync(destinationDir, { recursive: true });
         }
@@ -25,31 +24,31 @@ const storage = multer.diskStorage({
 // Create multer instance with the defined storage
 const upload = multer({ storage });
 
-const uploadProfilePic = async (req, res) => {
+const uploadBonLivraison = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { bonReceptionId } = req.params;
 
-        const user = await User.findOne({
-            where: { id: userId }
+        const user = await BonReception.findOne({
+            where: { id: bonReceptionId }
         });
 
         if (!user) {
-            return res.status(404).json({ message: 'user not found' });
+            return res.status(404).json({ message: 'reception not found' });
         }
 
         // Upload the bonlivraison file using multer middleware
-        upload.single('profilepic')(req, res, async function (err) {
+        upload.single('bonlivraison')(req, res, async function (err) {
             if (err) {
-                return res.status(400).json({ message: 'Failed to upload profile pic', error: err.message });
+                return res.status(400).json({ message: 'Failed to upload bon livraison', error: err.message });
             }
 
             // File uploaded successfully, retrieve the file path
             const filePath = req.file.path;
 
             // Update the bonreception record with the file path
-            await User.update({ profile_pic: filePath }, { where: { id: userId } });
+            await BonReception.update({ bonlivraison_path: filePath }, { where: { id: bonReceptionId } });
 
-            return res.status(200).json({ message: 'Profile Pic uploaded successfully', filePath });
+            return res.status(200).json({ message: 'bon livraison uploaded successfully', filePath });
         });
     } catch (error) {
         console.error('Failed to upload Bon livraison:', error);
@@ -57,4 +56,4 @@ const uploadProfilePic = async (req, res) => {
     }
 };
 
-export default uploadProfilePic;
+export default uploadBonLivraison;

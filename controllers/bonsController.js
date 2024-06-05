@@ -634,80 +634,90 @@ const createBonSortie = async (req, res) => {
     try {
         const { id_boncommandeinterne } = req.params;
         const { service, date, observations } = req.body;
-
+    
         const bonCommandeInterne = await BonCommandeInterne.findOne({
-            where: { id: id_boncommandeinterne }
+          where: { id: id_boncommandeinterne }
         });
-
+    
         if (!bonCommandeInterne) {
-            return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
+          return res.status(400).json({ message: 'Invalid id_boncommandeinterne' });
         }
-
+    
         if (bonCommandeInterne.typecommande !== 'Commande Interne') {
-            return res.status(400).json({ message: 'It\'s not a Commande Interne' });
+          return res.status(400).json({ message: 'It\'s not a Commande Interne' });
         }
-
+    
         const sortie = await BonSortie.findOne({
-            where: { id_boncommandeinterne: id_boncommandeinterne }
+          where: { id_boncommandeinterne: id_boncommandeinterne }
         });
         if (sortie) {
-            return res.status(400).json({ message: 'Bon de sortie already created' });
+          return res.status(400).json({ message: 'Bon de sortie already created' });
         }
-
+    
         if (bonCommandeInterne.validation !== 3) {
-            return res.status(400).json({ message: 'Bon de commande is not validated yet' });
+          return res.status(400).json({ message: 'Bon de commande is not validated yet' });
         }
-
+    
         const produits = await ProduitsCommandeInterne.findAll({
-            where: { id_boncommandeinterne: id_boncommandeinterne }
+          where: { id_boncommandeinterne: id_boncommandeinterne }
         });
-
+    
         for (const produit of produits) {
-            const availableQuantity = produit.quantity - produit.seuil;
-            if (produit.accordedquantity > availableQuantity) {
-                return res.status(400).json({
-                    message: 'Accorded quantity exceeds available quantity - seuil',
-                    produit: produit.id_produit
-                });
-            }
-        }
-
-        const bonSortie = await BonSortie.create({
-            id_boncommandeinterne,
-            service,
-            date
-        });
-
-        for (const produit of produits) {
-
-            const observation = observations.find(obs => obs.id_produit === produit.id_produit);
-
-            await ProduitsServie.create({
-                id_bonsortie: bonSortie.id,
-                id_produit: produit.id_produit,
-                servedquantity: produit.accordedquantity,
-                observation: observation ? observation.observation : null
+          const availableQuantity = produit.quantity - produit.seuil;
+          if (produit.accordedquantity > availableQuantity) {
+            return res.status(400).json({
+              message: 'Accorded quantity exceeds available quantity - seuil',
+              produit: produit.id_produit
             });
-
-            await Produit.update(
-                { quantity: sequelize.literal(`quantity - ${produit.accordedquantity}`) },
-                { where: { id: produit.id_produit } }
-            );
-
-            if (observation) {
-                await Produit.update(
-                    { observation: observation.observation },
-                    { where: { id: produit.id_produit } }
-                );
-            }
+          }
         }
-
+    
+        const bonSortie = await BonSortie.create({
+          id_boncommandeinterne,
+          service,
+          date
+        });
+    
+        for (const produit of produits) {
+          const observation = observations.find(obs => obs.id_produit === produit.id_produit);
+    
+          await ProduitsServie.create({
+            id_bonsortie: bonSortie.id,
+            id_produit: produit.id_produit,
+            servedquantity: produit.accordedquantity,
+            observation: observation ? observation.observation : null
+          });
+    
+          await Produit.update(
+            { quantity: sequelize.literal(`quantity - ${produit.accordedquantity}`) },
+            { where: { id: produit.id_produit } }
+          );
+    
+          if (observation) {
+            await Produit.update(
+              { observation: observation.observation },
+              { where: { id: produit.id_produit } }
+            );
+          }
+        }
+    
+        // Gestion des alertes
+        for (const produit of produits) {
+          const updatedProduct = await Produit.findByPk(produit.id_produit);
+          if (updatedProduct.quantity <= updatedProduct.seuil) {
+            await sendNotificationToUser(
+              `The product ${updatedProduct.name} is running out of stock.`,
+              34 // Assuming 34 is the user ID of the magasinier
+            );
+          }
+        }
+    
         res.status(201).json({ message: 'Bon de sortie created successfully', bonSortie });
-    } catch (error) {
+      } catch (error) {
         console.error('Failed to create bon de sortie:', error);
         res.status(500).json({ message: 'Failed to create bon de sortie', error: error.message });
-    }
-};
+      }
+    };
 
 
 const getConsommateurCommands = async (req,res) => {

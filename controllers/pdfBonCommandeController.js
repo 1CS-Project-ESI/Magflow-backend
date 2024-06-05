@@ -9,8 +9,9 @@ import htmlPdf from 'html-pdf';
 import { BonCommandeInterne, ProduitsCommandeInterne , BonSortie, ProduitsServie , BonCommande,ProduitsCommandes , BonReception , ProduitsDelivres , BonDecharge , ProduitsDecharges} from '../models/bonsModel.js';
 import { Consumer, User ,AgentServiceAchat , Magasinier} from '../models/usersModel.js';
 import { Fournisseur } from '../models/fournisseurModel.js';
-import { Produit } from '../models/productsModel.js';
 import { Structure } from '../models/structuresModel.js';
+import { EtatStock, Inventaire } from '../models/inventaireModel.js';
+import { Produit,Article,Chapitre } from '../models/productsModel.js';
 
 const generatePDF = async (req, res) => {
     try {
@@ -113,7 +114,7 @@ const generateBonSortiePDF = async (req, res) => {
         const produitsServis = await ProduitsServie.findAll({
             where: { id_bonsortie: bonSortieId }
         });
-        if (!produitsServis) {
+        if (!produitsServis || produitsServis.length === 0) {
             throw new Error('Produits Servis not found');
         }
 
@@ -151,14 +152,16 @@ const generateBonSortiePDF = async (req, res) => {
         const options = { format: 'A4' };
 
         // Generate PDF
-        const pdfPath = `bonSortie_${bonSortieId}.pdf`;
-        htmlPdf.create(htmlContent, options).toFile(pdfPath, (err, response) => {
+        htmlPdf.create(htmlContent, options).toBuffer((err, buffer) => {
             if (err) {
                 console.error('Failed to generate Bon de Sortie PDF:', err);
                 return res.status(500).json({ error: 'Failed to generate Bon de Sortie PDF' });
             }
-            console.log('Bon de Sortie PDF generated successfully:', response);
-            return res.status(200).json({ pdfPath });
+            // Set Content-Disposition header to prompt the browser to download the file
+            res.setHeader('Content-Disposition', 'attachment; filename=bonSortie.pdf');
+            res.setHeader('Content-Type', 'application/pdf');
+            // Send the PDF buffer as the response
+            res.send(buffer);
         });
     } catch (error) {
         console.error('Error generating Bon de Sortie PDF:', error);
@@ -231,14 +234,16 @@ const generateBonCommandePDF = async (req, res) => {
         const pdfOptions = { format: 'A4' };
 
         // Generate PDF
-        const pdfPath = `bonCommande_${bonCommandeId}.pdf`;
-        htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+        htmlPdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
             if (err) {
                 console.error('Failed to generate Bon de Commande PDF:', err);
                 return res.status(500).json({ error: 'Failed to generate Bon de Commande PDF' });
             }
-            console.log('Bon de Commande PDF generated successfully:', response);
-            return res.status(200).json({ pdfPath });
+            // Set Content-Disposition header to prompt the browser to download the file
+            res.setHeader('Content-Disposition', 'attachment; filename=bonCommande.pdf');
+            res.setHeader('Content-Type', 'application/pdf');
+            // Send the PDF buffer as the response
+            res.send(buffer);
         });
     } catch (error) {
         console.error('Error generating Bon de Commande PDF:', error);
@@ -302,21 +307,22 @@ const generateBonReceptionPDF = async (req, res) => {
         const pdfOptions = { format: 'A4' };
 
         // Generate PDF
-        const pdfPath = `bonReception_${bonReceptionId}.pdf`;
-        htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+        htmlPdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
             if (err) {
                 console.error('Failed to generate Bon Reception PDF:', err);
                 return res.status(500).json({ error: 'Failed to generate Bon Reception PDF' });
             }
-            console.log('Bon Reception PDF generated successfully:', response);
-            return res.status(200).json({ pdfPath });
+            // Set Content-Disposition header to prompt the browser to download the file
+            res.setHeader('Content-Disposition', 'attachment; filename=bonReception.pdf');
+            res.setHeader('Content-Type', 'application/pdf');
+            // Send the PDF buffer as the response
+            res.send(buffer);
         });
     } catch (error) {
         console.error('Error generating Bon Reception PDF:', error);
         return res.status(500).json({ error: error.message });
     }
 };
-
 const generateBonDechargePDF = async (req, res) => {
     try {
         const { bonDechargeId } = req.params;
@@ -368,14 +374,16 @@ const generateBonDechargePDF = async (req, res) => {
         const pdfOptions = { format: 'A4' };
 
         // Generate PDF
-        const pdfPath = `bonDecharge_${bonDechargeId}.pdf`;
-        htmlPdf.create(htmlContent, pdfOptions).toFile(pdfPath, (err, response) => {
+        htmlPdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
             if (err) {
                 console.error('Failed to generate Bon de Decharge PDF:', err);
                 return res.status(500).json({ error: 'Failed to generate Bon de Decharge PDF' });
             }
-            console.log('Bon de Decharge PDF generated successfully:', response);
-            return res.status(200).json({ pdfPath });
+            // Set Content-Disposition header to prompt the browser to download the file
+            res.setHeader('Content-Disposition', 'attachment; filename=bonDecharge.pdf');
+            res.setHeader('Content-Type', 'application/pdf');
+            // Send the PDF buffer as the response
+            res.send(buffer);
         });
     } catch (error) {
         console.error('Error generating Bon de Decharge PDF:', error);
@@ -383,5 +391,74 @@ const generateBonDechargePDF = async (req, res) => {
     }
 };
 
+const generateInventoryPDF = async (req, res) => {
+    try {
+        const { inventaireId } = req.params;
 
-export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF , generateBonDechargePDF}
+        // Fetch Inventaire details
+        const inventaire = await Inventaire.findByPk(inventaireId);
+        if (!inventaire) {
+            return res.status(404).json({ error: `Inventaire with ID ${inventaireId} not found` });
+        }
+
+        // Fetch the article details
+        const article = await Article.findByPk(inventaire.id_article);
+        if (!article) {
+            return res.status(404).json({ error: `Article with ID ${inventaire.id_article} not found` });
+        }
+
+        // Fetch details of products in the inventory
+        const etatStocks = await EtatStock.findAll({
+            where: { id_inventaire: inventaireId }
+        });
+        if (!etatStocks || etatStocks.length === 0) {
+            return res.status(404).json({ error: 'Etat Stocks not found' });
+        }
+
+        // Prepare products details
+        const produitsDetails = [];
+        for (const etatStock of etatStocks) {
+            const produit = await Produit.findByPk(etatStock.id_produit);
+            if (!produit) {
+                return res.status(404).json({ error: `Produit with ID ${etatStock.id_produit} not found` });
+            }
+            produitsDetails.push({
+                produitName: produit.name || 'N/A',
+                physicalquantity: etatStock.physicalquantity,
+                observation: etatStock.observation || 'N/A',
+                logicalquantity: etatStock.logicalquantity
+            });
+        }
+
+        // Render HTML template with EJS
+        const templatePath = path.resolve(fileURLToPath(import.meta.url), '../etatInventaireTemplate.ejs');
+        const templateContent = fs.readFileSync(templatePath, 'utf-8');
+        const htmlContent = ejs.render(templateContent, {
+            inventaire,
+            article,
+            produitsDetails
+        });
+
+        // Define PDF options
+        const pdfOptions = { format: 'A4' };
+
+        // Generate PDF and send as response
+        htmlPdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
+            if (err) {
+                console.error('Failed to generate Etat Inventaire PDF:', err);
+                return res.status(500).json({ error: 'Failed to generate Etat Inventaire PDF' });
+            }
+            // Set Content-Disposition header to prompt the browser to download the file
+            res.setHeader('Content-Disposition', 'attachment; filename=etatInventaire.pdf');
+            res.setHeader('Content-Type', 'application/pdf');
+            // Send the PDF buffer as the response
+            res.send(buffer);
+        });
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).json({ error: 'Failed to generate PDF' });
+    }
+};
+
+
+export { generatePDF, generateBonSortiePDF , generateBonCommandePDF , generateBonReceptionPDF , generateBonDechargePDF , generateInventoryPDF}

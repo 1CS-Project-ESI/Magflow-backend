@@ -603,6 +603,80 @@ const getMostConsumableProductsByStructure = async (req, res) => {
       console.error("Error retrieving user command counts:", error);
       throw error;
     }
-  }
+  };
 
-export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts};
+  const getTopConsumersForProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        // Step 1: Find the product by id
+        const product = await Produit.findByPk(productId);
+        if (!product) {
+            throw new Error(`Product with ID ${productId} not found`);
+        }
+
+        // Step 2: Find the rows of produitsdecharges and produitsservie by produit_id
+        const servedProducts = await ProduitsServie.findAll({
+            where: { id_produit: productId }
+        });
+        const dechargedProducts = await ProduitsDecharges.findAll({
+            where: { id_produit: productId }
+        });
+
+        // Step 3: Get consumers from bonsortie and bondecharge by id_consommateur
+        const consumers = {};
+
+        // Helper function to calculate quantity for a consumer
+        const calculateQuantity = (consumerName, quantity) => {
+            if (!consumers[consumerName]) {
+                consumers[consumerName] = 0;
+            }
+            consumers[consumerName] += quantity;
+        };
+
+        // Fetch consumers and calculate quantities for servedProducts
+        for (const servedProduct of servedProducts) {
+            const bonSortie = await BonSortie.findByPk(servedProduct.id_bonsortie);
+            if (bonSortie) {
+                const commandeInterne = await BonCommandeInterne.findByPk(bonSortie.id_boncommandeinterne);
+                if (commandeInterne) {
+                    const consumer = await User.findByPk(commandeInterne.id_consommateur);
+                    if (consumer) {
+                        const consumerName = consumer.firstname;
+                        calculateQuantity(consumerName, servedProduct.servedquantity);
+                    }
+                }
+            }
+        }
+
+        // Fetch consumers and calculate quantities for dechargedProducts
+        for (const dechargedProduct of dechargedProducts) {
+            const bonDecharge = await BonDecharge.findByPk(dechargedProduct.id_bondecharge);
+            if (bonDecharge) {
+                const commandeInterne = await BonCommandeInterne.findByPk(bonDecharge.id_boncommandeinterne);
+                if (commandeInterne) {
+                    const consumer = await User.findByPk(commandeInterne.id_consommateur);
+                    if (consumer) {
+                        const consumerName = consumer.firstname;
+                        calculateQuantity(consumerName, dechargedProduct.dechargedquantity);
+                    }
+                }
+            }
+        }
+
+        // Step 6: Order the consumers
+        const topConsumers = Object.entries(consumers)
+            .sort(([, quantityA], [, quantityB]) => quantityB - quantityA)
+            .slice(0, 10);
+
+        // Step 7: Return the top consumers with their quantities
+        res.status(200).json(topConsumers.map(([consumerName, quantity]) => ({ consumerName, quantity })));
+    } catch (error) {
+        // Handle errors
+        console.error('Error fetching top consumers:', error);
+        res.status(500).json({ message: 'Failed to fetch top consumers', error: error.message });
+    }
+};
+
+
+export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts,getTopConsumersForProduct};

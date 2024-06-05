@@ -32,6 +32,7 @@ const getNotificationsForRecipientById = async (req, res) => {
   try {
     const id = req.user.id; 
 
+
     const recipientNotifications = await NotificationSent.findAll({
       where: { id_user: id },
       attributes: ['id_notification'],
@@ -50,6 +51,7 @@ const getNotificationsForRecipientById = async (req, res) => {
     res.status(500).json({ error: 'Failed to get notifications for recipient' });
   }
 };
+
 
 // send notif mobile
 const sendNotificationToUserMobile = async (userId, notificationPayload) => {
@@ -94,3 +96,4 @@ const notificationPayload = {
 
 
 export { sendNotificationToUser, getNotificationsForRecipientById, sendNotificationToAllUsers, sendNotificationToUserMobile};
+

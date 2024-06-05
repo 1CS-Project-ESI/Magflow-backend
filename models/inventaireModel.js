@@ -58,6 +58,10 @@ const EtatStock = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    logicalquantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     observation: {
       type: DataTypes.STRING,
       allowNull: true,

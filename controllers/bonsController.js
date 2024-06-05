@@ -573,7 +573,6 @@ const createBonCommandeInterne = async (req, res) => {
             typecommande
         });
 
-
         sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, id_responsable)
 
 
@@ -1027,7 +1026,6 @@ const validateBonCommandeInterne = async (req, res) => {
           sendNotificationToUser(`Bon de commande interne ${bonCommandeInterne.number} is ready for processing.`, 136);
         } else if (bonCommandeInterne.validation === 3) {
             sendNotificationToUser(`Your command ${bonCommandeInterne.number} is validated and ready for pickup.`, bonCommandeInterne.id_consommateur);
-
         };
   
         return res.status(200).json({ message: "Bon de commande interne validated successfully with no new accorded quantities" });

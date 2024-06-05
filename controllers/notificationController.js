@@ -33,4 +33,15 @@ const getDirecteurNotifications = async (req, res) => {
   }
 };
 
-export { getMagasinierNotifications, getResponsableNotifications, getDirecteurNotifications };
+const getConsommateurNotifications = async (req, res) => {
+    try {
+      const { consommateurId } = req.params;
+      const magasinierNotifications = await getNotificationsForRecipientById(consommateurId);
+      res.json(magasinierNotifications);
+    } catch (error) {
+      console.error('Error fetching consommateur notifications:', error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  };
+
+export { getMagasinierNotifications, getResponsableNotifications, getDirecteurNotifications,getConsommateurNotifications };

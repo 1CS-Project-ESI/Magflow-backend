@@ -1,6 +1,7 @@
 import { EtatStock, Inventaire } from '../models/inventaireModel.js';
 import { Produit,Article,Chapitre } from '../models/productsModel.js';
 import { ProduitsDelivres, ProduitsServie } from '../models/bonsModel.js';
+import { sendNotification } from '../services/notificationService.js';
 
 const addInventoryState = async (req, res) => {
   try {
@@ -27,6 +28,8 @@ const addInventoryState = async (req, res) => {
             observation,
         });
     }
+    sendNotification(`Inventaire ${inventaire.number} requires validation.`, 34);
+
     res.status(201).json({ message: 'Inventory states added successfully', inventaire });
 } catch (error) {
     console.error('Error adding inventory states:', error);
@@ -133,45 +136,45 @@ const validateInventoryState = async (req, res) => {
 }
 };
 
-const getInventoryDifferences = async (req, res) => {
-  try {
-    const { id_inventaire } = req.params;
+// const getInventoryDifferences = async (req, res) => {
+//   try {
+//     const { id_inventaire } = req.params;
 
-    const etatInventaires = await EtatStock.findAll({
-        where: { id_inventaire },
-    });
+//     const etatInventaires = await EtatStock.findAll({
+//         where: { id_inventaire },
+//     });
 
-    if (etatInventaires.length === 0) {
-        return res.status(404).json({ error: 'No inventory states found for this inventory' });
-    }
+//     if (etatInventaires.length === 0) {
+//         return res.status(404).json({ error: 'No inventory states found for this inventory' });
+//     }
 
-    const differences = [];
+//     const differences = [];
 
-    for (const etatInventaire of etatInventaires) {
-        const produit = await Produit.findByPk(etatInventaire.id_produit);
-        if (produit && produit.quantity !== etatInventaire.physicalquantity) {
-            differences.push({
-                id: produit.id,
-                name: produit.name,
-                caracteristics: produit.caracteristics,
-                quantity: produit.quantity,
-                seuil: produit.seuil,
-                physicalquantity: etatInventaire.physicalquantity,
-                observation: etatInventaire.observation
-            });
-        }
-    }
+//     for (const etatInventaire of etatInventaires) {
+//         const produit = await Produit.findByPk(etatInventaire.id_produit);
+//         if (produit && produit.quantity !== etatInventaire.physicalquantity) {
+//             differences.push({
+//                 id: produit.id,
+//                 name: produit.name,
+//                 caracteristics: produit.caracteristics,
+//                 quantity: produit.quantity,
+//                 seuil: produit.seuil,
+//                 physicalquantity: etatInventaire.physicalquantity,
+//                 observation: etatInventaire.observation
+//             });
+//         }
+//     }
 
-    if (differences.length === 0) {
-        return res.status(200).json({ message: 'No differences found' });
-    }
+//     if (differences.length === 0) {
+//         return res.status(200).json({ message: 'No differences found' });
+//     }
 
-    res.status(200).json(differences);
-} catch (error) {
-    console.error('Error retrieving inventory differences:', error);
-    res.status(500).json({ error: 'Failed to retrieve inventory differences' });
-}
-};
+//     res.status(200).json(differences);
+// } catch (error) {
+//     console.error('Error retrieving inventory differences:', error);
+//     res.status(500).json({ error: 'Failed to retrieve inventory differences' });
+// }
+// };
 
 const viewInventoryState = async (req, res) => {
   try {
@@ -300,4 +303,4 @@ const getSortie = async (produitId) => {
   }
 };
 
-export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,getAllInventaires,validateInventoryState,getInventoryDifferences };
+export { addInventoryState, modifyInventoryState, deleteInventoryState, viewInventoryState,getAllInventaires,validateInventoryState};

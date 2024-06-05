@@ -45,4 +45,22 @@ const NotificationSent = sequelize.define('NotificationSent', {
     timestamps: false
 });
 
-export { Notification, NotificationSent };
+const FCMToken = sequelize.define('FCMToken', {
+    id_user: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      references: {
+        model: User,
+        key: 'id'
+      },
+      allowNull: false
+    },
+    token: {
+      type: DataTypes.STRING
+    }
+  }, {
+    tableName: 'fcm',
+    timestamps: false
+  });
+
+export { Notification, NotificationSent, FCMToken };

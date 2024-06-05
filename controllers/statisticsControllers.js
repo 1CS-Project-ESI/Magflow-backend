@@ -437,6 +437,7 @@ const getMostConsumableProductsByStructure = async (req, res) => {
       });
     }
   };
+  
 
   const getTopConsumersByStructure = async (req, res) => {
     const { structureId } = req.params;
@@ -781,6 +782,324 @@ const getTopConsumersForProductByDate = async (req, res) => {
   }
 };
 
+const getMostConsumableProductsByStructureByDate = async (req, res) => {
+  const { structureId } = req.params;
+  const { startDate, endDate } = req.body; // Retrieve dates from request body
+
+  if (!structureId || isNaN(structureId)) {
+      return res.status(400).json({
+          message: 'Invalid or missing structureId parameter',
+      });
+  }
+
+  if (!startDate || !endDate) {
+      return res.status(400).json({
+          message: 'startDate and endDate are required',
+      });
+  }
+
+  try {
+      // Find all consumers with the given structureId
+      const consumers = await Consumer.findAll({
+          attributes: ['user_id'],
+          where: {
+              id_structure: structureId
+          }
+      });
+
+      if (consumers.length === 0) {
+          return res.status(404).json({
+              message: 'No consumers found for the given structureId',
+          });
+      }
+
+      const consumerIds = consumers.map(consumer => consumer.user_id);
+
+      // Find all BonCommandeInterne records for those consumers
+      const bonCommandesInternes = await BonCommandeInterne.findAll({
+          attributes: ['id'],
+          where: {
+              id_consommateur: {
+                  [Op.in]: consumerIds
+              }
+          }
+      });
+
+      const bonCommandeIds = bonCommandesInternes.map(bon => bon.id);
+
+      if (bonCommandeIds.length === 0) {
+          return res.status(404).json({
+              message: 'No BonCommandeInterne records found for the given consumers',
+          });
+      }
+
+      // Find all BonSortie and BonDecharge records linked to the BonCommandeInterne records within the date range
+      const bonsSortie = await BonSortie.findAll({
+          attributes: ['id'],
+          where: {
+              id_boncommandeinterne: {
+                  [Op.in]: bonCommandeIds
+              },
+              date: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)]
+              }
+          }
+      });
+
+      const bonsDecharge = await BonDecharge.findAll({
+          attributes: ['id'],
+          where: {
+              id_boncommandeinterne: {
+                  [Op.in]: bonCommandeIds
+              },
+              date: {
+                  [Op.between]: [new Date(startDate), new Date(endDate)]
+              }
+          }
+      });
+
+      const bonSortieIds = bonsSortie.map(bon => bon.id);
+      const bonDechargeIds = bonsDecharge.map(bon => bon.id);
+
+      // Find the most consumable products by those bonSortieIds and bonDechargeIds
+      const servedQuantities = await ProduitsServie.findAll({
+          attributes: [
+              'id_produit',
+              [sequelize.fn('SUM', sequelize.col('servedquantity')), 'total_served_quantity']
+          ],
+          where: {
+              id_bonsortie: {
+                  [Op.in]: bonSortieIds
+              }
+          },
+          group: ['id_produit']
+      });
+
+      const dechargedQuantities = await ProduitsDecharges.findAll({
+          attributes: [
+              'id_produit',
+              [sequelize.fn('SUM', sequelize.col('dechargedquantity')), 'total_decharged_quantity']
+          ],
+          where: {
+              id_bondecharge: {
+                  [Op.in]: bonDechargeIds
+              }
+          },
+          group: ['id_produit']
+      });
+
+      // Merge the results based on product ID
+      const productMap = new Map();
+
+      servedQuantities.forEach(item => {
+          const productId = item.id_produit;
+          const servedQuantity = parseInt(item.get('total_served_quantity'), 10);
+          productMap.set(productId, {
+              id_produit: productId,
+              total_quantity: servedQuantity
+          });
+      });
+
+      dechargedQuantities.forEach(item => {
+          const productId = item.id_produit;
+          const dechargedQuantity = parseInt(item.get('total_decharged_quantity'), 10);
+          if (productMap.has(productId)) {
+              productMap.get(productId).total_quantity += dechargedQuantity;
+          } else {
+              productMap.set(productId, {
+                  id_produit: productId,
+                  total_quantity: dechargedQuantity
+              });
+          }
+      });
+
+      const mergedResults = Array.from(productMap.values());
+
+      // Sort and limit results
+      mergedResults.sort((a, b) => b.total_quantity - a.total_quantity);
+      const topResults = mergedResults.slice(0, 10);
+
+      // Fetch product names from Produit table using the retrieved product IDs
+      const productIds = topResults.map(result => result.id_produit);
+      const products = await Produit.findAll({
+          attributes: ['id', 'name'],
+          where: {
+              id: {
+                  [Op.in]: productIds
+              }
+          }
+      });
+
+      // Merge product names with the results
+      const finalResults = topResults.map(result => {
+          const productName = products.find(product => product.id === result.id_produit)?.name;
+          return {
+              productName: productName || 'Unknown', // Set default name if product not found
+              total_quantity: result.total_quantity
+          };
+      });
+
+      res.status(200).json({
+          message: 'Most consumable products retrieved successfully',
+          data: finalResults
+      });
+  } catch (error) {
+      console.error('Error retrieving most consumable products by structure:', error);
+      res.status(500).json({
+          message: 'Error retrieving most consumable products by structure',
+          error: error.message
+      });
+  }
+};
 
 
-export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts,getTopConsumersForProduct,getTopConsumersForProductByDate};
+const getMostConsumableProductsByUserByDate = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const { startDate, endDate } = req.body; // Retrieve dates from request body
+
+        if (!user_id) {
+            return res.status(400).json({
+                message: 'user_id parameter is required'
+            });
+        }
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                message: 'startDate and endDate are required'
+            });
+        }
+
+        // Find the user
+        const user = await Consumer.findOne({
+            where: {
+                user_id
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'User not found'
+            });
+        }
+
+        // Find the internal purchase orders of the user within the date range
+        const userBonCommandes = await BonCommandeInterne.findAll({
+            where: {
+                id_consommateur: user_id,
+                date: {
+                    [Op.between]: [new Date(startDate), new Date(endDate)]
+                }
+            }
+        });
+
+        if (userBonCommandes.length === 0) {
+            return res.status(404).json({
+                message: 'No internal purchase orders found for the user'
+            });
+        }
+
+        const bonCommandeIds = userBonCommandes.map(bon => bon.id);
+
+        // Find the BonSortie and BonDecharge records within the date range
+        const bonSorties = await BonSortie.findAll({
+            where: {
+                id_boncommandeinterne: {
+                    [Op.in]: bonCommandeIds
+                },
+                date: {
+                    [Op.between]: [new Date(startDate), new Date(endDate)]
+                }
+            }
+        });
+
+        const bonDecharges = await BonDecharge.findAll({
+            where: {
+                id_boncommandeinterne: {
+                    [Op.in]: bonCommandeIds
+                },
+                date: {
+                    [Op.between]: [new Date(startDate), new Date(endDate)]
+                }
+            }
+        });
+
+        const bonSortieIds = bonSorties.map(bon => bon.id);
+        const bonDechargeIds = bonDecharges.map(bon => bon.id);
+
+        // Find the served quantities for each product within the date range
+        const servedProducts = await ProduitsServie.findAll({
+            attributes: [
+                'id_produit',
+                [sequelize.fn('SUM', sequelize.col('servedquantity')), 'total_served_quantity']
+            ],
+            where: {
+                id_bonsortie: {
+                    [Op.in]: bonSortieIds
+                }
+            },
+            group: ['id_produit']
+        });
+
+        // Find the decharged quantities for each product within the date range
+        const dechargedProducts = await ProduitsDecharges.findAll({
+            attributes: [
+                'id_produit',
+                [sequelize.fn('SUM', sequelize.col('dechargedquantity')), 'total_decharged_quantity']
+            ],
+            where: {
+                id_bondecharge: {
+                    [Op.in]: bonDechargeIds
+                }
+            },
+            group: ['id_produit']
+        });
+
+        // Merge served and decharged quantities for each product
+        const mergedProducts = new Map();
+        servedProducts.forEach(product => {
+            const productId = product.id_produit;
+            const totalServedQuantity = product.get('total_served_quantity');
+            mergedProducts.set(productId, totalServedQuantity);
+        });
+
+        dechargedProducts.forEach(product => {
+            const productId = product.id_produit;
+            const totalDechargedQuantity = product.get('total_decharged_quantity');
+            if (mergedProducts.has(productId)) {
+                mergedProducts.set(productId, mergedProducts.get(productId) + totalDechargedQuantity);
+            } else {
+                mergedProducts.set(productId, totalDechargedQuantity);
+            }
+        });
+
+        // Filter out products with total consumed quantity of 0
+        const filteredProducts = [...mergedProducts.entries()].filter(([_, totalQuantity]) => totalQuantity > 0);
+
+        // Sort products based on their total consumed quantities
+        const sortedProducts = filteredProducts.sort((a, b) => b[1] - a[1]);
+
+        // Return the sorted products with their details
+        const topNProducts = await Promise.all(sortedProducts.map(async ([productId, totalQuantity]) => {
+            const product = await Produit.findByPk(productId);
+            return {
+                productname: product.name,
+                totalquantity: totalQuantity
+            };
+        }));
+
+        res.status(200).json({
+            message: 'Most consumable products by user retrieved successfully',
+            topNProducts
+        });
+    } catch (error) {
+        console.error('Error retrieving most consumable products by user:', error);
+        res.status(500).json({
+            message: 'Error retrieving most consumable products by user',
+            error: error.message
+        });
+    }
+};
+
+
+export { calculateQuantitiesByProduct , getMostConsumableProductsByStructure , calculateStockValue , fetchProductsWithPositiveStock ,getMostConsumableProductsByUser , getTopConsumersByStructure , getTotalOrdersByStructure , getUserCommandCounts,getTopConsumersForProduct,getTopConsumersForProductByDate , getMostConsumableProductsByStructureByDate , getMostConsumableProductsByUserByDate};

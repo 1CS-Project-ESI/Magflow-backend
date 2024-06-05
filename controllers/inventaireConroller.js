@@ -1,7 +1,7 @@
 import { EtatStock, Inventaire } from '../models/inventaireModel.js';
 import { Produit,Article,Chapitre } from '../models/productsModel.js';
 import { ProduitsDelivres, ProduitsServie } from '../models/bonsModel.js';
-import { sendNotification } from '../services/notificationService.js';
+import { sendNotificationToUser} from '../services/notificationService.js';
 
 const addInventoryState = async (req, res) => {
   try {
@@ -25,10 +25,11 @@ const addInventoryState = async (req, res) => {
             id_produit: produitId,
             id_inventaire: inventaire.id,
             physicalquantity: physicalQuantity,
+            logicalquantity : produit.quantity ,
             observation,
         });
     }
-    sendNotification(`Inventaire ${inventaire.number} requires validation.`, 34);
+    sendNotificationToUser(`Inventaire ${inventaire.number} requires validation.`, 34);
 
     res.status(201).json({ message: 'Inventory states added successfully', inventaire });
 } catch (error) {
@@ -280,7 +281,7 @@ const getEntree = async (produitId) => {
     const produitsDelivres = await ProduitsDelivres.findAll({
       where: { id_produit: produitId },
       attributes: ['receivedquantity'], 
-    });
+    }); 
 
     return produitsDelivres.reduce((total, produit) => total + produit.receivedquantity, 0);
   } catch (error) {

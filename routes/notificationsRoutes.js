@@ -1,6 +1,4 @@
 import express from "express";
-import { getMagasinierNotifications, getResponsableNotifications, getDirecteurNotifications } from "../controllers/notificationController.js";
-
 import { getMagasinierNotifications, getResponsableNotifications, getDirecteurNotifications,getConsommateurNotifications } from "../controllers/notificationController.js";
 import {saveUserFcmToken} from "../controllers/pushNotification.js"
 

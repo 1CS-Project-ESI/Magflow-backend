@@ -10,11 +10,12 @@ import { sendNotificationToUser } from "../services/notificationService.js";
 const createBonCommande = async (req, res) => {
     try {
         const { id_agentserviceachat } = req.params;
-        const { id_fournisseur, number, orderdate, status, productsOrdered, orderspecifications } = req.body;
+        const { id_fournisseur, number, orderdate, status, productsOrdered ,orderspecifications, id_article } = req.body;
 
         let total_ht = 0;
-        let total_tva = 0;
+        let tva = 0;
         let total_ttc = 0;
+
 
         const newBonCommande = await BonCommande.create({
             id_agentserviceachat,
@@ -24,8 +25,7 @@ const createBonCommande = async (req, res) => {
             orderspecifications,
             status,
             total_ttc,
-            total_ht,
-            tva: total_tva
+            total_ht
         });
 
         for (const product of productsOrdered) {
@@ -33,7 +33,7 @@ const createBonCommande = async (req, res) => {
         }
 
         for (const product of productsOrdered) {
-            const { productId, ordered_quantity, price } = product;
+            const { productId } = product;
             const produit = await Produit.findByPk(productId);
 
             if (!produit) {
@@ -43,33 +43,32 @@ const createBonCommande = async (req, res) => {
             const produitArticle = await ProduitsArticle.findOne({
                 where: { id_produit: productId }
             });
-
+            
             if (!produitArticle) {
                 return res.status(404).json({ message: `Article not found for product ID ${productId}` });
             }
 
-            const article = await Article.findByPk(produitArticle.id_article);
+            // const article = await Article.findByPk(produitArticle.id_article);
+            const article = await Article.findByPk(Article.id_article);
 
             if (!article) {
                 return res.status(404).json({ message: `Article not found for product ID ${productId}` });
             }
 
             const tva = article.tva;
-            const product_total_ttc = (price * (1 + tva / 100)) * ordered_quantity;
-            total_ttc += product_total_ttc;
-            total_tva += (price * (tva / 100)) * ordered_quantity;
+            total_ttc += (product.price * (1 + tva / 100)) * product.ordered_quantity;
 
             await ProduitsCommandes.create({
-                id_produit: productId,
+                id_produit: product.productId,
                 id_boncommande: newBonCommande.id,
-                ordered_quantity,
-                price
+                ordered_quantity: product.ordered_quantity,
+                price: product.price
             });
         }
 
         await newBonCommande.update({
             total_ht,
-            tva: total_tva,
+            tva: total_ttc - total_ht,
             total_ttc
         });
 
@@ -79,7 +78,6 @@ const createBonCommande = async (req, res) => {
         res.status(500).json({ message: 'Failed to create BonCommande', error: error.message });
     }
 };
-
 
 
 const createBonRepection = async (req, res) => {
